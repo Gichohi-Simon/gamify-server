@@ -16,7 +16,7 @@ import {
 const router = express.Router();
 
 router.post("/create-product", authenticate, authorizeAdmin, createProduct);
-router.get("/all-products", authenticate, authorizeAdmin, getAllProducts);
+router.get("/all-products",getAllProducts);
 router.get("/search", searchProducts);
 router.get("/", getPaginatedProducts);
 router.get("/getFirstThree", getFirstThreeProducts);
