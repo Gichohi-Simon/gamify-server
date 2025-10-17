@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+ @@map(name:"user")
+ id Int @id @default(autoincrement()) 
+ username String @db.VarChar(255)
+ email String @db.VarChar(255) @unique
+ password String @db.VarChar(255)
+ isAdmin Boolean @default(false)
+ isActive Boolean @default(true)
+ createdAt DateTime @default(now())
+ orders Order[]
+}
+
+model Product {
+  @@map(name:"product")
+  id Int  @id @default(autoincrement())
+  name String @db.VarChar(255)
+  price Int
+  image String @db.VarChar(255)
+  createdAt DateTime @default(now())
+  orderItems OrderItem[]
+}
+
+model Order {
+  @@map(name:"order")
+  id Int  @id @default(autoincrement())
+  // fields reffers to a local foreign key
+  user User @relation(fields: [userId], references: [id])
+  userId Int
+  taxPrice Int
+  totalPrice Int
+  isPaid Boolean @default(false)
+  paidAt DateTime?
+  isDelivered Boolean @default(false)
+  deliveredAt DateTime?
+  invoiceNumber String? @unique
+  createdAt DateTime @default(now())
+  orderItems OrderItem[]
+}
+
+// join table that connects each order to its products and holds quantity
+model OrderItem {
+  id Int @default(autoincrement()) @id
+  order Order @relation(fields: [orderId], references: [id])
+  orderId Int
+  product Product @relation(fields: [productId], references: [id])
+  productId Int
+  quantity Int
+  price Decimal @db.Decimal(10,2)
+  @@unique([orderId, productId])
+}
