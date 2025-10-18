@@ -16,7 +16,7 @@ import {
 const router = express.Router();
 
 router.post("/create-product", authenticate, authorizeAdmin, createProduct);
-router.get("/all-products",getAllProducts);
+router.get("/all-products", getAllProducts);
 router.get("/search", searchProducts);
 router.get("/", getPaginatedProducts);
 router.get("/getFirstThree", getFirstThreeProducts);
@@ -26,7 +26,7 @@ router.patch(
   "/update-product/:id",
   authenticate,
   authorizeAdmin,
-  updateProduct
+  updateProduct,
 );
 
 export default router;

@@ -27,19 +27,19 @@ router.get(
   "/singleUser-orders/:id",
   authenticate,
   authorizeAdmin,
-  getSingleUserOrders
+  getSingleUserOrders,
 );
 router.patch(
   "/mark-as-delivered/:orderId",
   authenticate,
   authorizeAdmin,
-  markOrderAsDelivered
+  markOrderAsDelivered,
 );
 router.patch(
   "/mark-as-paid/:orderId",
   authenticate,
   authorizeAdmin,
-  markOrderAsPaid
+  markOrderAsPaid,
 );
 
 export default router;

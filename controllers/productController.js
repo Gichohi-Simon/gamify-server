@@ -15,7 +15,7 @@ export const createProduct = async (req, res) => {
         price,
       },
     });
-    
+
     res.status(201).json({ newProduct });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -40,23 +40,23 @@ export const getPaginatedProducts = async (req, res) => {
   try {
     const products = await prisma.product.findMany({
       skip,
-      take:limit,
-      orderBy:{
-        id:"desc"
-      }
-    })
+      take: limit,
+      orderBy: {
+        id: "desc",
+      },
+    });
 
     const totalProducts = await prisma.product.count();
-    const totalPages = Math.ceil(totalProducts/limit);
+    const totalPages = Math.ceil(totalProducts / limit);
 
     return res.status(200).json({
-      currentPage:page,
+      currentPage: page,
       totalPages,
       totalProducts,
       products,
-    })
+    });
   } catch (error) {
-    res.status(500).json({error:error.message})
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -136,7 +136,7 @@ export const updateProduct = async (req, res) => {
 export const deleteSingleProduct = async (req, res) => {
   const id = parseInt(req.params.id);
   try {
-    const deletedProduct = await prisma.product.delete({
+    await prisma.product.delete({
       where: {
         id,
       },

@@ -10,9 +10,9 @@ const invoiceNumber = `INV-${uuidv4().slice(0, 8).toUpperCase()}`;
 function calcPrices(orderItems) {
   const itemsPrice = orderItems.reduce(
     (acc, item) => acc + Number(item.price) * item.quantity,
-    0
+    0,
   );
-  
+
   const shippingPrice = 0;
   const taxRate = 0.16;
   const taxPrice = (itemsPrice * taxRate).toFixed(2);

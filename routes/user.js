@@ -24,7 +24,7 @@ router.get(
   "/getDeletedAccounts",
   authenticate,
   authorizeAdmin,
-  getDeletedAccounts
+  getDeletedAccounts,
 );
 router.patch("/delete-account", authenticate, deleteAccount);
 router.get("/single-user/:id", authenticate, authorizeAdmin, getSingleUser);

@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "check": "npm run lint && npm run format"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +26,11 @@
     "uuid": "^13.0.0"
   },
   "devDependencies": {
+    "eslint": "^9.38.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "lint-staged": "^16.2.4",
+    "prettier": "^3.6.2",
     "prisma": "^6.9.0"
   }
 }

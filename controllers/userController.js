@@ -4,9 +4,9 @@ const prisma = new PrismaClient();
 export const getAllUsers = async (req, res) => {
   try {
     const users = await prisma.user.findMany({
-      where:{
-        isActive:true
-      }
+      where: {
+        isActive: true,
+      },
     });
     res.status(200).json({
       users,
