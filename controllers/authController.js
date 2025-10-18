@@ -8,6 +8,7 @@ const prisma = new PrismaClient();
 export const signUp = async (req, res) => {
   try {
     const { username, email, password } = req.body;
+
     if (!username || !email || !password) {
       return res.status(400).json({ error: "all fields are required" });
     }
@@ -17,7 +18,7 @@ export const signUp = async (req, res) => {
         email,
       },
     });
-    
+
     if (existingUser) {
       return res.status(400).json({
         msg: "user already exists",
@@ -34,7 +35,9 @@ export const signUp = async (req, res) => {
         password: hashedPassword,
       },
     });
+
     createToken(res, savedUser.id);
+
     delete savedUser.password;
 
     res.status(201).json({ user: savedUser });
@@ -47,6 +50,7 @@ export const signUp = async (req, res) => {
 
 export const login = async (req, res) => {
   const { email, password } = req.body;
+
   try {
     const user = await prisma.user.findUnique({
       where: {
@@ -73,7 +77,6 @@ export const login = async (req, res) => {
     res.status(200).json({
       user,
     });
-
   } catch (error) {
     res.status(500).json({
       error: error.message,
@@ -94,13 +97,31 @@ export const logoutCurrentUser = async (req, res) => {
 
 export const checkCookie = async (req, res) => {
   const token = req.cookies.jwt;
+
   if (!token) {
     return res.status(401).json({ message: "user not logged in" });
   }
-  
+
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    res.status(200).json({ userId: decoded.userId });
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: decoded.userId,
+      },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        isAdmin: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "user not found" });
+    }
+
+    res.status(200).json({ user });
   } catch (error) {
     res.status(401).json({ message: "Invalid token" });
   }
