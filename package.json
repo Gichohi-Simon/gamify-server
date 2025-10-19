@@ -34,5 +34,17 @@
     "lint-staged": "^16.2.4",
     "prettier": "^3.6.2",
     "prisma": "^6.9.0"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.json": [
+      "prettier --write"
+    ],
+    "*.md": [
+      "prettier --write"
+    ]
   }
 }
