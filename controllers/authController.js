@@ -118,7 +118,6 @@ export const checkCookie = async (req, res) => {
     });
 
     if (!user) {
-        console.log("can husky catch me")
       return res.status(404).json({ message: "user not found" });
     }
 
