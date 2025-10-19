@@ -8,7 +8,6 @@ export const getAllUsers = async (req, res) => {
         isActive: true,
       },
     });
-    console.log(users);
     res.status(200).json({
       users,
     });
