@@ -28,5 +28,6 @@ app.use("/users", userRoutes);
 app.use("/order", orderRoutes);
 
 app.listen(PORT, () => {
+  // eslint-disable-next-line no-console
   console.log(`server has started on port ${PORT}🔥`);
 });
