@@ -13,9 +13,17 @@ import {
   authorizeAdmin,
   authenticate,
 } from "../middlewares/authMiddlewares.js";
+import upload from "../middlewares/multer.js";
+
 const router = express.Router();
 
-router.post("/create-product", authenticate, authorizeAdmin, createProduct);
+router.post(
+  "/create-product",
+  authenticate,
+  authorizeAdmin,
+  upload.single("image"),
+  createProduct,
+);
 router.get("/all-products", getAllProducts);
 router.get("/search", searchProducts);
 router.get("/", getPaginatedProducts);

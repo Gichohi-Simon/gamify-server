@@ -1,18 +1,47 @@
 import { PrismaClient } from "@prisma/client";
+import cloudinary from "../utils/cloudinaryConfig";
+import fs from "fs";
+
 const prisma = new PrismaClient();
 
 export const createProduct = async (req, res) => {
-  const { image, name, price } = req.body;
+  const { name, price } = req.body;
+  let { categoryIds } = req.body;
+
+  if (categoryIds) {
+    if (typeof categoryIds == "string") {
+      try {
+        categoryIds = JSON.parse(categoryIds);
+      } catch {
+        categoryIds = [categoryIds];
+      }
+    }
+  } else {
+    categoryIds = [];
+  }
+
   try {
-    if (!image || !name || !price) {
-      return res.status(400).json({ error: "all fields are required" });
+    let image = null;
+    let cloudinary_id = null;
+
+    if (req.file) {
+      const uploadResult = await cloudinary.uploader.upload(req.file.path, {
+        folder: "articles",
+        resource_type: "image",
+      });
+
+      image = uploadResult.secure_url;
+      cloudinary_id = uploadResult.public_id;
+
+      fs.unlinkSync(req.file.path);
     }
 
     const newProduct = await prisma.product.create({
       data: {
-        image,
         name,
         price,
+        image,
+        cloudinary_id,
       },
     });
 
