@@ -19,8 +19,8 @@ const router = express.Router();
 
 router.post(
   "/create-product",
-  authenticate,
-  authorizeAdmin,
+  // authenticate,
+  // authorizeAdmin,
   upload.single("image"),
   createProduct,
 );
