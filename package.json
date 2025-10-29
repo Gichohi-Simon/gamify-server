@@ -4,8 +4,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node index.js",
+    "start": "npm run migrate && node index.js",
     "dev": "nodemon index.js",
+    "migrate": "npx prisma migrate deploy",
+    "postinstall": "npx prisma generate",
     "lint": "eslint .",
     "format": "prettier --write .",
     "check": "npm run lint && npm run format",
