@@ -31,6 +31,7 @@ model Product {
   name String @db.VarChar(255)
   price Int
   image String @db.VarChar(255)
+  cloudinary_id String?
   createdAt DateTime @default(now())
   orderItems OrderItem[]
 }
