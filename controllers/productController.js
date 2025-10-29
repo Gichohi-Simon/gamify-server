@@ -39,7 +39,7 @@ export const createProduct = async (req, res) => {
     const newProduct = await prisma.product.create({
       data: {
         name,
-        price,
+        price: Number(price),
         image,
         cloudinary_id,
       },
