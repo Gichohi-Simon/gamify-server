@@ -3,7 +3,7 @@ import {
   createProduct,
   deleteSingleProduct,
   getAllProducts,
-  getFirstThreeProducts,
+  getFirstFourProducts,
   getPaginatedProducts,
   getSingleProduct,
   searchProducts,
@@ -27,7 +27,7 @@ router.post(
 router.get("/all-products", getAllProducts);
 router.get("/search", searchProducts);
 router.get("/", getPaginatedProducts);
-router.get("/getFirstThree", getFirstThreeProducts);
+router.get("/getFirstFour", getFirstFourProducts);
 router.get("/:id", getSingleProduct);
 router.delete("/:id", authenticate, authorizeAdmin, deleteSingleProduct);
 router.patch(

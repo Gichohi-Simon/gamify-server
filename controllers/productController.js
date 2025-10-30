@@ -89,12 +89,12 @@ export const getPaginatedProducts = async (req, res) => {
   }
 };
 
-export const getFirstThreeProducts = async (req, res) => {
+export const getFirstFourProducts = async (req, res) => {
   try {
     const products = await prisma.product.findMany({
-      take: 3,
+      take: 4,
       orderBy: {
-        id: "asc",
+        id: "desc",
       },
     });
     res.status(200).json({ products });
