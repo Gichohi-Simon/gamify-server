@@ -18,7 +18,10 @@ const app = express();
 dotenv.config();
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: [
+      "http://localhost:3000",
+      "https://www.gamifygeneralsupplies.co.ke",
+    ],
     credentials: true,
   }),
 );
