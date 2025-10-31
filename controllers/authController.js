@@ -36,8 +36,6 @@ export const signUp = async (req, res) => {
       },
     });
 
-    createToken(res, savedUser.id);
-
     delete savedUser.password;
 
     res.status(201).json({ user: savedUser });
@@ -87,6 +85,9 @@ export const login = async (req, res) => {
 export const logoutCurrentUser = async (req, res) => {
   res.cookie("jwt", " ", {
     httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    domain: ".gichohi.com",
     expires: new Date(0),
   });
 

@@ -9,6 +9,7 @@ export const authenticate = async (req, res, next) => {
   if (!token) return res.status(404).json({ message: "token not found" });
 
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
   req.user = await prisma.user.findUnique({
     where: {
       id: decoded.userId,
