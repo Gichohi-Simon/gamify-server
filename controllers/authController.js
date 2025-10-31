@@ -83,12 +83,11 @@ export const login = async (req, res) => {
 };
 
 export const logoutCurrentUser = async (req, res) => {
-  res.cookie("jwt", " ", {
+  res.clearCookie("jwt", " ", {
     httpOnly: true,
     secure: true,
     sameSite: "none",
-    domain: ".www.gamifygeneralsupplies.co.ke",
-    expires: new Date(0),
+    domain: ".gamifygeneralsupplies.co.ke",
   });
 
   res.status(200).json({
