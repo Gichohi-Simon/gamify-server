@@ -9,7 +9,7 @@ const generateToken = (res, userId) => {
     httpOnly: true,
     secure: true,
     sameSite: "none",
-    domain: ".gamifygeneralsupplies.co.ke",
+    // domain: ".gamifygeneralsupplies.co.ke",
     maxAge: 30 * 24 * 60 * 60 * 1000,
   });
 
