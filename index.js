@@ -21,6 +21,7 @@ app.use(
     origin: [
       "http://localhost:3000",
       "https://www.gamifygeneralsupplies.co.ke",
+      "https://gamifygeneralsupplies.co.ke",
     ],
     credentials: true,
   }),
