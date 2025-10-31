@@ -87,7 +87,7 @@ export const logoutCurrentUser = async (req, res) => {
     httpOnly: true,
     secure: true,
     sameSite: "none",
-    domain: ".gichohi.com",
+    domain: ".www.gamifygeneralsupplies.co.ke",
     expires: new Date(0),
   });
 
