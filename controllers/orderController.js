@@ -5,7 +5,6 @@ import fs from "fs";
 import path from "path";
 
 const prisma = new PrismaClient();
-const invoiceNumber = `INV-${uuidv4().slice(0, 8).toUpperCase()}`;
 
 function calcPrices(orderItems) {
   const itemsPrice = orderItems.reduce(
@@ -69,44 +68,113 @@ function generateInvoice(order, res) {
   doc.pipe(res);
 }
 
+// export const createOrder = async (req, res) => {
+//   try {
+//     const { orderItems } = req.body;
+//     const userId = req.user?.id;
+
+//     if (!orderItems || orderItems.length === 0) {
+//       res.status(400).json({ message: "not order items" });
+//     }
+
+//     const invoiceNumber = `INV-${uuidv4().slice(0, 8).toUpperCase()}`;
+
+//     const productIds = orderItems.map((item) => item.productId);
+//     // fetches product from db for validation (price, existence)
+//     const dbProducts = await prisma.product.findMany({
+//       where: {
+//         id: { in: productIds },
+//       },
+//     });
+
+//     // map client items to db products to check for missing items in db
+//     const dbOrderItems = orderItems.map((item) => {
+//       const dbProduct = dbProducts.find((p) => p.id === item.productId);
+//       if (!dbProduct) {
+//         return res
+//           .status(400)
+//           .json({ error: `product not found ${item.productId}` });
+//       }
+
+//       return {
+//         productId: dbProduct.id,
+//         quantity: item.quantity,
+//         price: dbProduct.price,
+//       };
+//     });
+
+//     const { itemsPrice, taxPrice, totalPrice } = calcPrices(dbOrderItems);
+
+//     const createOrder = await prisma.order.create({
+//       data: {
+//         userId,
+//         itemsPrice,
+//         taxPrice: Number(taxPrice),
+//         totalPrice: Number(totalPrice),
+//         orderItems: {
+//           create: dbOrderItems,
+//         },
+//         invoiceNumber,
+//       },
+//       include: {
+//         orderItems: {
+//           include: {
+//             product: {
+//               select: {
+//                 name: true,
+//                 image: true,
+//               },
+//             },
+//           },
+//         },
+//       },
+//     });
+
+//     res.status(201).json({ createOrder });
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
+
 export const createOrder = async (req, res) => {
   try {
     const { orderItems } = req.body;
     const userId = req.user?.id;
 
     if (!orderItems || orderItems.length === 0) {
-      res.status(400).json({ message: "not order items" });
+      return res.status(400).json({ message: "No order items provided" });
     }
 
+    // Generate unique invoice number per order
+    const invoiceNumber = `INV-${uuidv4().slice(0, 8).toUpperCase()}`;
+
     const productIds = orderItems.map((item) => item.productId);
-    // fetches product from db for validation (price, existence)
     const dbProducts = await prisma.product.findMany({
-      where: {
-        id: { in: productIds },
-      },
+      where: { id: { in: productIds } },
     });
 
-    // map client items to db products to check for missing items in db
-    const dbOrderItems = orderItems.map((item) => {
+    const dbOrderItems = [];
+    for (const item of orderItems) {
       const dbProduct = dbProducts.find((p) => p.id === item.productId);
       if (!dbProduct) {
-        return res
-          .status(400)
-          .json({ error: `product not found ${item.productId}` });
+        throw new Error(`Product not found: ${item.productId}`);
       }
 
-      return {
+      dbOrderItems.push({
         productId: dbProduct.id,
         quantity: item.quantity,
         price: dbProduct.price,
-      };
-    });
+      });
+    }
 
-    const { taxPrice, totalPrice } = calcPrices(dbOrderItems);
+    const { itemsPrice, shippingPrice, taxPrice, totalPrice } =
+      calcPrices(dbOrderItems);
 
-    const createOrder = await prisma.order.create({
+    const order = await prisma.order.create({
       data: {
         userId,
+        itemsPrice,
+        shippingPrice,
         taxPrice: Number(taxPrice),
         totalPrice: Number(totalPrice),
         orderItems: {
@@ -117,20 +185,15 @@ export const createOrder = async (req, res) => {
       include: {
         orderItems: {
           include: {
-            product: {
-              select: {
-                name: true,
-                image: true,
-              },
-            },
+            product: { select: { name: true, image: true } },
           },
         },
       },
     });
 
-    res.status(201).json({ createOrder });
+    return res.status(201).json({ order });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
