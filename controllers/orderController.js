@@ -163,6 +163,18 @@ export const getSingleUserOrders = async (req, res) => {
       where: {
         userId,
       },
+      include: {
+        orderItems: {
+          include: {
+            product: {
+              select: {
+                name: true,
+                image: true,
+              },
+            },
+          },
+        },
+      },
     });
     res.status(200).json({ singleUserOrders });
   } catch (error) {
@@ -176,6 +188,18 @@ export const getCurrentUserOrders = async (req, res) => {
     const orders = await prisma.order.findMany({
       where: {
         userId,
+      },
+      include: {
+        orderItems: {
+          include: {
+            product: {
+              select: {
+                name: true,
+                image: true,
+              },
+            },
+          },
+        },
       },
     });
     res.status(200).json({ orders });
