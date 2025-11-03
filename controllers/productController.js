@@ -141,6 +141,37 @@ export const searchProducts = async (req, res) => {
   }
 };
 
+export const getProductsByIds = async (req, res) => {
+  try {
+    const idsParam = req.query.ids;
+
+    if (!idsParam) {
+      return res.status(400).json({ error: "No product IDs provided" });
+    }
+
+    const ids = idsParam
+      .split(",")
+      .map((id) => parseInt(id))
+      .filter(Boolean);
+
+    if (ids.length === 0) {
+      return res.status(400).json({ error: "Invalid product IDs" });
+    }
+
+    const products = await prisma.product.findMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+    });
+
+    res.status(200).json({ products });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 export const updateProduct = async (req, res) => {
   const id = parseInt(req.params.id);
   const { name, image, price } = req.body;

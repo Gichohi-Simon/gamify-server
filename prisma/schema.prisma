@@ -31,7 +31,6 @@ model Product {
 
   @@map("product")
 }
-
 model Order {
   id             Int       @id @default(autoincrement())
   user           User      @relation(fields: [userId], references: [id])

@@ -8,6 +8,7 @@ import {
   getSingleProduct,
   searchProducts,
   updateProduct,
+  getProductsByIds,
 } from "../controllers/productController.js";
 import {
   authorizeAdmin,
@@ -28,6 +29,7 @@ router.get("/all-products", getAllProducts);
 router.get("/search", searchProducts);
 router.get("/", getPaginatedProducts);
 router.get("/getFirstFour", getFirstFourProducts);
+router.get("/by-ids", getProductsByIds);
 router.get("/:id", getSingleProduct);
 router.delete("/:id", authenticate, authorizeAdmin, deleteSingleProduct);
 router.patch(
