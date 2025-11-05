@@ -15,8 +15,7 @@ import {
 } from "../middlewares/authMiddlewares.js";
 const router = express.Router();
 
-router.get("/allUsers", getAllUsers);
-// router.get("/allUsers", authenticate, authorizeAdmin, getAllUsers);
+router.get("/allUsers", authenticate, authorizeAdmin, getAllUsers);
 // router.get("/getActiveusers", authenticate,authorizeAdmin ,getActiveUsers);
 router.get(
   "/getDeletedAccounts",
