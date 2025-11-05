@@ -104,7 +104,7 @@ export const getFirstFourProducts = async (req, res) => {
 };
 
 export const getSingleProduct = async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = req.params.id;
   try {
     const singleProduct = await prisma.product.findUnique({
       where: {
@@ -173,7 +173,7 @@ export const getProductsByIds = async (req, res) => {
 };
 
 export const updateProduct = async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = req.params.id;
   const { name, image, price } = req.body;
   try {
     const updatedProduct = await prisma.product.update({
@@ -194,7 +194,7 @@ export const updateProduct = async (req, res) => {
 };
 
 export const deleteSingleProduct = async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = req.params.id;
   try {
     await prisma.product.delete({
       where: {

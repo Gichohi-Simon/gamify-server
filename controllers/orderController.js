@@ -152,7 +152,7 @@ export const getAllOrders = async (req, res) => {
 };
 
 export const getSingleUserOrders = async (req, res) => {
-  const userId = parseInt(req.params.id);
+  const userId = req.params.id;
   try {
     const singleUserOrders = await prisma.order.findMany({
       where: {
@@ -227,7 +227,7 @@ export const getTotalSales = async (req, res) => {
 };
 
 export const markOrderAsDelivered = async (req, res) => {
-  const orderId = parseInt(req.params.orderId);
+  const orderId = req.params.orderId;
   try {
     const delivered = await prisma.order.update({
       where: {
@@ -247,7 +247,7 @@ export const markOrderAsDelivered = async (req, res) => {
 };
 
 export const markOrderAsPaid = async (req, res) => {
-  const orderId = parseInt(req.params.orderId);
+  const orderId = req.params.orderId;
   try {
     const paidProduct = await prisma.order.update({
       where: {
@@ -267,7 +267,7 @@ export const markOrderAsPaid = async (req, res) => {
 export const getInvoice = async (req, res) => {
   try {
     const order = await prisma.order.findUnique({
-      where: { id: parseInt(req.params.orderId) },
+      where: { id: req.params.orderId },
       include: {
         orderItems: {
           include: {

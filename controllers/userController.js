@@ -29,24 +29,8 @@ export const getDeletedAccounts = async (req, res) => {
   }
 };
 
-export const getLoggedInUser = async (req, res) => {
-  try {
-    const user = await prisma.user.findUnique({
-      where: {
-        id: req.user.id,
-      },
-    });
-    delete user.password;
-    res.status(200).json({ user });
-  } catch (error) {
-    res.status(500).json({
-      error: error.message,
-    });
-  }
-};
-
 export const getSingleUser = async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = req.params.id;
   try {
     const user = await prisma.user.findUnique({
       where: {
@@ -60,7 +44,7 @@ export const getSingleUser = async (req, res) => {
 };
 
 export const deleteAccount = async (req, res) => {
-  const id = parseInt(req.user.id);
+  const id = req.user.id;
   try {
     const deletedAccount = await prisma.user.update({
       where: {
@@ -78,7 +62,7 @@ export const deleteAccount = async (req, res) => {
 };
 
 export const deleteUser = async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = req.params.id;
   try {
     const deletedUser = await prisma.user.update({
       where: {
@@ -97,7 +81,7 @@ export const deleteUser = async (req, res) => {
 };
 
 export const makeAdmin = async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = req.params.id;
   try {
     const user = await prisma.user.update({
       where: {
@@ -118,7 +102,7 @@ export const makeAdmin = async (req, res) => {
 };
 
 export const removeAdmin = async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = req.params.id;
   try {
     const user = await prisma.user.update({
       where: {

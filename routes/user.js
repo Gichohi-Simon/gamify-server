@@ -5,7 +5,6 @@ import {
   // getActiveUsers,
   getAllUsers,
   getDeletedAccounts,
-  getLoggedInUser,
   getSingleUser,
   makeAdmin,
   removeAdmin,
@@ -18,7 +17,6 @@ const router = express.Router();
 
 router.get("/allUsers", getAllUsers);
 // router.get("/allUsers", authenticate, authorizeAdmin, getAllUsers);
-router.get("/logged-in-user", authenticate, getLoggedInUser);
 // router.get("/getActiveusers", authenticate,authorizeAdmin ,getActiveUsers);
 router.get(
   "/getDeletedAccounts",
