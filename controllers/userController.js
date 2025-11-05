@@ -43,7 +43,7 @@ export const getSingleUser = async (req, res) => {
   }
 };
 
-export const banUserFromPlatform = async (req, res) => {
+export const userAccountDeletion = async (req, res) => {
   const id = req.user.id;
   try {
     const deletedAccount = await prisma.user.update({
@@ -78,7 +78,7 @@ export const restoreBannedUserToPlatform = async (req, res) => {
   }
 };
 
-export const userAccountDeletion = async (req, res) => {
+export const banUserFromPlatform = async (req, res) => {
   const id = req.params.id;
   try {
     const deletedUser = await prisma.user.update({
