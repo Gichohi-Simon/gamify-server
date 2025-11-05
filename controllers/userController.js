@@ -61,6 +61,23 @@ export const banUserFromPlatform = async (req, res) => {
   }
 };
 
+export const restoreBannedUserToPlatform = async (req, res) => {
+  const id = req.user.id;
+  try {
+    const restoreAccount = await prisma.user.update({
+      where: {
+        id,
+      },
+      data: {
+        isActive: true,
+      },
+    });
+    res.status(201).json({ restoreAccount });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const userAccountDeletion = async (req, res) => {
   const id = req.params.id;
   try {

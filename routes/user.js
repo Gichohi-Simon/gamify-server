@@ -7,6 +7,7 @@ import {
   getSingleUser,
   makeAdmin,
   removeAdmin,
+  restoreBannedUserToPlatform,
 } from "../controllers/userController.js";
 import {
   authenticate,
@@ -29,6 +30,12 @@ router.patch(
   authenticate,
   authorizeAdmin,
   banUserFromPlatform,
+);
+router.patch(
+  "/restore-banned-user-to-platform/:id",
+  authenticate,
+  authorizeAdmin,
+  restoreBannedUserToPlatform,
 );
 router.patch("/makeAdmin/:id", authenticate, authorizeAdmin, makeAdmin);
 router.patch("/removeAdmin/:id", authenticate, authorizeAdmin, removeAdmin);
