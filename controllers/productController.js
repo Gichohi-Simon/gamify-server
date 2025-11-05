@@ -151,8 +151,8 @@ export const getProductsByIds = async (req, res) => {
 
     const ids = idsParam
       .split(",")
-      .map((id) => parseInt(id))
-      .filter(Boolean);
+      .map((id) => id.trim())
+      .filter((id) => id.length > 0);
 
     if (ids.length === 0) {
       return res.status(400).json({ error: "Invalid product IDs" });
