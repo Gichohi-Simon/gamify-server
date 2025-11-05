@@ -1,8 +1,7 @@
 import express from "express";
 import {
-  deleteAccount,
-  deleteUser,
-  // getActiveUsers,
+  userAccountDeletion,
+  banUserFromPlatform,
   getAllUsers,
   getDeletedAccounts,
   getSingleUser,
@@ -16,16 +15,21 @@ import {
 const router = express.Router();
 
 router.get("/allUsers", authenticate, authorizeAdmin, getAllUsers);
-// router.get("/getActiveusers", authenticate,authorizeAdmin ,getActiveUsers);
+
 router.get(
   "/getDeletedAccounts",
   authenticate,
   authorizeAdmin,
   getDeletedAccounts,
 );
-router.patch("/delete-account", authenticate, deleteAccount);
+router.patch("/delete-my-account", authenticate, userAccountDeletion);
 router.get("/single-user/:id", authenticate, authorizeAdmin, getSingleUser);
-router.patch("/deleteUser/:id", authenticate, authorizeAdmin, deleteUser);
+router.patch(
+  "/ban-user-from-platform/:id",
+  authenticate,
+  authorizeAdmin,
+  banUserFromPlatform,
+);
 router.patch("/makeAdmin/:id", authenticate, authorizeAdmin, makeAdmin);
 router.patch("/removeAdmin/:id", authenticate, authorizeAdmin, removeAdmin);
 
