@@ -8,6 +8,7 @@ import productRoutes from "./routes/product.js";
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/user.js";
 import orderRoutes from "./routes/order.js";
+import addressRoutes from "./routes/address.js";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -37,6 +38,7 @@ app.use("/product", productRoutes);
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/order", orderRoutes);
+app.use("/address", addressRoutes);
 
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console
