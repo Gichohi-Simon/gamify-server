@@ -24,6 +24,7 @@ export const createAddress = async (req, res) => {
         floorNumber,
         city,
         postalCode,
+        userId,
       },
     });
 
