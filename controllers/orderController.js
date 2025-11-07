@@ -132,6 +132,9 @@ export const createOrder = async (req, res) => {
 export const getAllOrders = async (req, res) => {
   try {
     const orders = await prisma.order.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
       include: {
         orderItems: {
           include: {
