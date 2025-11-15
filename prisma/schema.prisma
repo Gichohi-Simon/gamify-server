@@ -8,73 +8,73 @@ datasource db {
 }
 
 model User {
-  id              String            @id @default(uuid())
-  username        String            @db.VarChar(255)
-  email           String            @unique @db.VarChar(255)
-  password        String            @db.VarChar(255)
-  isAdmin         Boolean           @default(false)
-  createdAt       DateTime          @default(now())
-  isActive        Boolean           @default(true)
-  orders          Order[]
+  id              String           @id @default(uuid())
+  username        String           @db.VarChar(255)
+  email           String           @unique @db.VarChar(255)
+  password        String           @db.VarChar(255)
+  isAdmin         Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  isActive        Boolean          @default(true)
   deliveryAddress DeliveryAddress?
+  orders          Order[]
 
   @@map("user")
 }
 
 model Product {
-  id            String      @id @default(uuid())
-  name          String      @db.VarChar(255)
-  price         Int
-  images         String[]
-  description  String   @db.VarChar(255)
-  category    String  @db.VarChar(255)
-  createdAt     DateTime    @default(now())
+  id             String      @id @default(uuid())
+  name           String      @db.VarChar(255)
+  price          Int
+  createdAt      DateTime    @default(now())
+  category       String      @db.VarChar(255)
   cloudinary_ids String[]
-  orderItems    OrderItem[]
+  description    String      @db.Text
+  images         String[]
+  orderItems     OrderItem[]
+
   @@map("product")
 }
 
 model Order {
-  id             String     @id @default(uuid())
-  user           User       @relation(fields: [userId], references: [id])
-  userId         String
-  itemsPrice     Decimal    @db.Decimal(10,2)
-  shippingPrice  Decimal    @db.Decimal(10,2)
-  taxPrice       Decimal    @db.Decimal(10,2)
-  totalPrice     Decimal    @db.Decimal(10,2)
-  isPaid         Boolean    @default(false)
-  paidAt         DateTime?
-  isDelivered    Boolean    @default(false)
-  deliveredAt    DateTime?
-  invoiceNumber  String?    @unique
-  createdAt      DateTime   @default(now())
-  orderItems     OrderItem[]
+  id            String      @id @default(uuid())
+  userId        String
+  itemsPrice    Decimal     @db.Decimal(10, 2)
+  shippingPrice Decimal     @db.Decimal(10, 2)
+  taxPrice      Decimal     @db.Decimal(10, 2)
+  totalPrice    Decimal     @db.Decimal(10, 2)
+  isPaid        Boolean     @default(false)
+  paidAt        DateTime?
+  isDelivered   Boolean     @default(false)
+  deliveredAt   DateTime?
+  invoiceNumber String?     @unique
+  createdAt     DateTime    @default(now())
+  orderItems    OrderItem[]
+  user          User        @relation(fields: [userId], references: [id])
 
   @@map("order")
 }
 
 model OrderItem {
-  id        String   @id @default(uuid())
+  id        String  @id @default(uuid())
   orderId   String
   productId String
   quantity  Int
-  price     Decimal  @db.Decimal(10, 2)
-  order     Order    @relation(fields: [orderId], references: [id])
-  product   Product  @relation(fields: [productId], references: [id])
+  price     Decimal @db.Decimal(10, 2)
+  order     Order   @relation(fields: [orderId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
 
   @@unique([orderId, productId])
 }
 
 model DeliveryAddress {
-  id           String  @id @default(uuid())
-  companyName  String  @db.VarChar(255)
-  street       String  @db.VarChar(255)
-  floorNumber  String? @db.VarChar(255)
-  city         String? @db.VarChar(255)
-  postalCode   String  @db.VarChar(50)
-
-  userId       String  @unique
-  user         User    @relation(fields:[userId], references: [id], onDelete: Cascade)
+  id          String  @id @default(uuid())
+  companyName String  @db.VarChar(255)
+  street      String  @db.VarChar(255)
+  floorNumber String? @db.VarChar(255)
+  city        String? @db.VarChar(255)
+  postalCode  String  @db.VarChar(50)
+  userId      String  @unique
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("delivery_address")
 }
