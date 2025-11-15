@@ -5,43 +5,34 @@ import fs from "fs";
 const prisma = new PrismaClient();
 
 export const createProduct = async (req, res) => {
-  const { name, price } = req.body;
-  let { categoryIds } = req.body;
-
-  if (categoryIds) {
-    if (typeof categoryIds == "string") {
-      try {
-        categoryIds = JSON.parse(categoryIds);
-      } catch {
-        categoryIds = [categoryIds];
-      }
-    }
-  } else {
-    categoryIds = [];
-  }
+  const { name, price, description, category } = req.body;
 
   try {
-    let image = null;
-    let cloudinary_id = null;
+    let images = null;
+    let cloudinary_ids = null;
 
-    if (req.file) {
-      const uploadResult = await cloudinary.uploader.upload(req.file.path, {
-        folder: "articles",
-        resource_type: "image",
-      });
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        const uploadResult = await cloudinary.uploader.upload(file.path, {
+          folder: "products",
+          resource_type: "image",
+        });
 
-      image = uploadResult.secure_url;
-      cloudinary_id = uploadResult.public_id;
+        images.push(uploadResult.secure_url);
+        cloudinary_ids.push(uploadResult.public_id);
 
-      fs.unlinkSync(req.file.path);
+        fs.unlinkSync(file.path);
+      }
     }
 
     const newProduct = await prisma.product.create({
       data: {
         name,
         price: Number(price),
-        image,
-        cloudinary_id,
+        description,
+        category,
+        images,
+        cloudinary_id: cloudinary_ids.join(","),
       },
     });
 

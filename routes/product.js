@@ -22,7 +22,7 @@ router.post(
   "/create-product",
   authenticate,
   authorizeAdmin,
-  upload.single("image"),
+  upload.array("images", 4),
   createProduct,
 );
 router.get("/all-products", getAllProducts);
