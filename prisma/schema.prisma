@@ -29,7 +29,7 @@ model Product {
   description  String   @db.VarChar(255)
   category    String  @db.VarChar(255)
   createdAt     DateTime    @default(now())
-  cloudinary_id String?
+  cloudinary_ids String[]
   orderItems    OrderItem[]
   @@map("product")
 }

@@ -32,7 +32,7 @@ export const createProduct = async (req, res) => {
         description,
         category,
         images,
-        cloudinary_id: cloudinary_ids.join(","),
+        cloudinary_ids: cloudinary_ids,
       },
     });
 
@@ -165,20 +165,61 @@ export const getProductsByIds = async (req, res) => {
 
 export const updateProduct = async (req, res) => {
   const id = req.params.id;
-  const { name, image, price } = req.body;
+  const { name, price, description, category, removeImages } = req.body;
+
   try {
+    const existing = await prisma.product.findUnique({
+      where: { id },
+    });
+    if (!existing) return res.status(404).json({ error: "Product not found" });
+
+    let removeList = [];
+    if (removeImages) {
+      try {
+        removeList = JSON.parse(removeImages);
+      } catch {
+        removeList = [removeImages];
+      }
+    }
+
+    let updatedImages = existing.images || [];
+    let updatedCloudIds = [...existing.cloudinary_ids];
+
+    if (removeList.length > 0) {
+      for (const publicId of removeList) {
+        await cloudinary.uploader.destroy(publicId);
+        const index = updatedCloudIds.indexOf(publicId);
+        if (index > -1) {
+          updatedCloudIds.splice(index, 1);
+          updatedImages.splice(index, 1);
+        }
+      }
+    }
+
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        const upload = await cloudinary.uploader.upload(file.path, {
+          folder: "products",
+        });
+        updatedImages.push(upload.secure_url);
+        updatedCloudIds.push(upload.public_id);
+        fs.unlinkSync(file.path);
+      }
+    }
+
     const updatedProduct = await prisma.product.update({
-      where: {
-        id,
-      },
+      where: { id },
       data: {
         name,
-        image,
-        price,
+        price: Number(price),
+        description,
+        category,
+        images: updatedImages,
+        cloudinary_ids: updatedCloudIds,
       },
     });
 
-    res.status(201).json({ updatedProduct });
+    res.status(200).json({ updatedProduct });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
