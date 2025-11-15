@@ -8,8 +8,8 @@ export const createProduct = async (req, res) => {
   const { name, price, description, category } = req.body;
 
   try {
-    let images = null;
-    let cloudinary_ids = null;
+    let images = [];
+    let cloudinary_ids = [];
 
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
