@@ -15,31 +15,23 @@ function calcPrices(orderItems) {
   const shippingPrice = 0;
   const taxRate = 0.16;
   const taxPrice = (itemsPrice * taxRate).toFixed(2);
-
   const totalPrice = (
     itemsPrice +
     shippingPrice +
     parseFloat(taxPrice)
   ).toFixed(2);
 
-  return {
-    itemsPrice,
-    shippingPrice,
-    taxPrice,
-    totalPrice,
-  };
+  return { itemsPrice, shippingPrice, taxPrice, totalPrice };
 }
 
 function generateInvoice(order, res) {
   const doc = new PDFDocument();
-
   const filename = `invoice-${order.invoiceNumber}.pdf`;
   const filepath = path.join("/tmp", filename);
 
   doc.pipe(fs.createWriteStream(filepath));
 
   doc.text("Gamify General Supplies").fontSize(32).moveDown();
-
   doc
     .fontSize(12)
     .text(`Invoice Number: ${order.invoiceNumber}`)
@@ -55,16 +47,10 @@ function generateInvoice(order, res) {
   doc.moveDown();
   doc.text(`Tax: ${order.taxPrice}`);
   doc.text(`Total: ${order.totalPrice}`);
-
-  // footer
   doc.moveDown();
-  doc.fontSize(10).text("Thank you for your business!", {
-    align: "center",
-  });
+  doc.fontSize(10).text("Thank you for your business!", { align: "center" });
 
   doc.end();
-
-  // returns pdf file stream to client
   doc.pipe(res);
 }
 
@@ -77,7 +63,6 @@ export const createOrder = async (req, res) => {
       return res.status(400).json({ message: "No order items provided" });
     }
 
-    // Generate unique invoice number per order
     const invoiceNumber = `INV-${uuidv4().slice(0, 8).toUpperCase()}`;
 
     const productIds = orderItems.map((item) => item.productId);
@@ -117,7 +102,7 @@ export const createOrder = async (req, res) => {
       include: {
         orderItems: {
           include: {
-            product: { select: { name: true, image: true } },
+            product: { select: { name: true, images: true } },
           },
         },
       },
@@ -132,18 +117,11 @@ export const createOrder = async (req, res) => {
 export const getAllOrders = async (req, res) => {
   try {
     const orders = await prisma.order.findMany({
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: { createdAt: "desc" },
       include: {
         orderItems: {
           include: {
-            product: {
-              select: {
-                name: true,
-                image: true,
-              },
-            },
+            product: { select: { name: true, images: true } },
           },
         },
       },
@@ -158,18 +136,11 @@ export const getSingleUserOrders = async (req, res) => {
   const userId = req.params.id;
   try {
     const singleUserOrders = await prisma.order.findMany({
-      where: {
-        userId,
-      },
+      where: { userId },
       include: {
         orderItems: {
           include: {
-            product: {
-              select: {
-                name: true,
-                image: true,
-              },
-            },
+            product: { select: { name: true, images: true } },
           },
         },
       },
@@ -184,18 +155,11 @@ export const getCurrentUserOrders = async (req, res) => {
   const userId = req.user.id;
   try {
     const orders = await prisma.order.findMany({
-      where: {
-        userId,
-      },
+      where: { userId },
       include: {
         orderItems: {
           include: {
-            product: {
-              select: {
-                name: true,
-                image: true,
-              },
-            },
+            product: { select: { name: true, images: true } },
           },
         },
       },
@@ -218,14 +182,13 @@ export const getTotalOrders = async (req, res) => {
 export const getTotalSales = async (req, res) => {
   try {
     const orders = await prisma.order.findMany();
-    const totalSales = orders.reduce((sum, order) => sum + order.totalPrice, 0);
-    res.status(200).json({
-      totalSales,
-    });
+    const totalSales = orders.reduce(
+      (sum, order) => sum + Number(order.totalPrice),
+      0,
+    );
+    res.status(200).json({ totalSales });
   } catch (error) {
-    res.status(500).json({
-      error: error.message,
-    });
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -233,19 +196,12 @@ export const markOrderAsDelivered = async (req, res) => {
   const orderId = req.params.orderId;
   try {
     const delivered = await prisma.order.update({
-      where: {
-        id: orderId,
-      },
-      data: {
-        isDelivered: true,
-        deliveredAt: new Date(),
-      },
+      where: { id: orderId },
+      data: { isDelivered: true, deliveredAt: new Date() },
     });
     res.status(201).json({ delivered });
   } catch (error) {
-    res.status(500).json({
-      error: error.message,
-    });
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -253,13 +209,8 @@ export const markOrderAsPaid = async (req, res) => {
   const orderId = req.params.orderId;
   try {
     const paidProduct = await prisma.order.update({
-      where: {
-        id: orderId,
-      },
-      data: {
-        isPaid: true,
-        paidAt: new Date(),
-      },
+      where: { id: orderId },
+      data: { isPaid: true, paidAt: new Date() },
     });
     res.status(201).json({ paidProduct });
   } catch (error) {
@@ -273,12 +224,11 @@ export const getInvoice = async (req, res) => {
       where: { id: req.params.orderId },
       include: {
         orderItems: {
-          include: {
-            product: true,
-          },
+          include: { product: true },
         },
       },
     });
+
     if (!order) {
       return res.status(404).json({ error: "order not found" });
     }
