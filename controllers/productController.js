@@ -42,6 +42,7 @@ export const createProduct = async (req, res) => {
   }
 };
 
+// {{API_URL}}/product/all-products?q=film&page=1
 export const getAllProducts = async (req, res) => {
   try {
     const { page = 1, limit = 8, q = "" } = req.query;
