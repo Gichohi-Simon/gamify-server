@@ -96,10 +96,14 @@ export const getFirstFourProducts = async (req, res) => {
 
 export const getRandomFourProducts = async (req, res) => {
   try {
-    const products = await prisma.product.findMany({
-      take: 4,
-      orderBy: { random: true },
-    });
+    const allProducts = await prisma.product.findMany();
+
+    for (let i = allProducts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [allProducts[i], allProducts[j]] = [allProducts[j], allProducts[i]];
+    }
+
+    const products = allProducts.slice(0, 4);
 
     res.status(200).json({ products });
   } catch (error) {
