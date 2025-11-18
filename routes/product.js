@@ -9,6 +9,7 @@ import {
   searchProducts,
   updateProduct,
   getProductsByIds,
+  getRandomFourProducts,
 } from "../controllers/productController.js";
 import {
   authorizeAdmin,
@@ -26,6 +27,7 @@ router.post(
   createProduct,
 );
 router.get("/all-products", getAllProducts);
+router.get("/get-random-four-products", getRandomFourProducts);
 router.get("/search", searchProducts);
 router.get("/", getPaginatedProducts);
 router.get("/getFirstFour", getFirstFourProducts);

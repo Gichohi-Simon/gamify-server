@@ -94,6 +94,19 @@ export const getFirstFourProducts = async (req, res) => {
   }
 };
 
+export const getRandomFourProducts = async (req, res) => {
+  try {
+    const products = await prisma.product.findMany({
+      take: 4,
+      orderBy: { random: true },
+    });
+
+    res.status(200).json({ products });
+  } catch (error) {
+    res.status(200).json({ error: error.message });
+  }
+};
+
 export const getSingleProduct = async (req, res) => {
   const id = req.params.id;
   try {
