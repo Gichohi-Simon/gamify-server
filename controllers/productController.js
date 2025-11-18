@@ -44,33 +44,37 @@ export const createProduct = async (req, res) => {
 
 export const getAllProducts = async (req, res) => {
   try {
-    const products = await prisma.product.findMany();
-    res.status(200).json({ products });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+    const { page = 1, limit = 8, q = "" } = req.query;
 
-// http://localhost:8080/product?page=1
-export const getPaginatedProducts = async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = 6;
-  // calcluates number of products to skip
-  const skip = (page - 1) * limit;
-  try {
-    const products = await prisma.product.findMany({
-      skip,
-      take: limit,
-      orderBy: {
-        id: "desc",
-      },
-    });
+    const pageNum = Number(page);
+    const limitNum = Number(limit);
 
-    const totalProducts = await prisma.product.count();
-    const totalPages = Math.ceil(totalProducts / limit);
+    const skip = (pageNum - 1) * limitNum;
+    const filters = {};
 
-    return res.status(200).json({
-      currentPage: page,
+    if (q.trim()) {
+      filters.OR = [
+        { name: { contains: q, mode: "insensitive" } },
+        { category: { contains: q, mode: "insensitive" } },
+        { description: { contains: q, mode: "insensitive" } },
+      ];
+    }
+
+    const [products, totalProducts] = await Promise.all([
+      prisma.product.findMany({
+        where: filters,
+        skip,
+        take: limitNum,
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.product.count({ where: filters }),
+    ]);
+
+    const totalPages = Math.ceil(totalProducts / limitNum);
+
+    res.status(200).json({
+      success: true,
+      currentPage: pageNum,
       totalPages,
       totalProducts,
       products,
@@ -121,29 +125,6 @@ export const getSingleProduct = async (req, res) => {
     });
 
     res.status(200).json({ singleProduct });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-// http://localhost:8080/product/search?q=book
-export const searchProducts = async (req, res) => {
-  const query = req.query.q;
-  if (!query) {
-    return res.status(400).json({ error: "Search query is required" });
-  }
-
-  try {
-    const products = await prisma.product.findMany({
-      where: {
-        name: {
-          contains: query,
-          mode: "insensitive",
-        },
-      },
-    });
-
-    res.status(200).json({ products });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
