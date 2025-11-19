@@ -136,6 +136,7 @@ export const getSingleUserOrders = async (req, res) => {
   const userId = req.params.id;
   try {
     const singleUserOrders = await prisma.order.findMany({
+      orderBy: { createdAt: "desc" },
       where: { userId },
       include: {
         orderItems: {
@@ -155,6 +156,7 @@ export const getCurrentUserOrders = async (req, res) => {
   const userId = req.user.id;
   try {
     const orders = await prisma.order.findMany({
+      orderBy: { createdAt: "desc" },
       where: { userId },
       include: {
         orderItems: {
