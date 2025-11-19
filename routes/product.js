@@ -4,9 +4,7 @@ import {
   deleteSingleProduct,
   getAllProducts,
   getFirstFourProducts,
-  getPaginatedProducts,
   getSingleProduct,
-  searchProducts,
   updateProduct,
   getProductsByIds,
   getRandomFourProducts,
@@ -28,8 +26,6 @@ router.post(
 );
 router.get("/all-products", getAllProducts);
 router.get("/get-random-four-products", getRandomFourProducts);
-router.get("/search", searchProducts);
-router.get("/", getPaginatedProducts);
 router.get("/getFirstFour", getFirstFourProducts);
 router.get("/by-ids", getProductsByIds);
 router.get("/:id", getSingleProduct);
