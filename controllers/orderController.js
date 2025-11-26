@@ -159,6 +159,7 @@ export const getCurrentUserOrders = async (req, res) => {
       orderBy: { createdAt: "desc" },
       where: { userId },
       include: {
+        // remove order items if need be.
         orderItems: {
           include: {
             product: { select: { name: true, images: true } },
@@ -167,6 +168,25 @@ export const getCurrentUserOrders = async (req, res) => {
       },
     });
     res.status(200).json({ orders });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getSingleOrderById = async (req, res) => {
+  const orderId = await req.params.id;
+  try {
+    const order = await prisma.order.findUnique({
+      where: { orderId },
+      include: {
+        orderItems: {
+          include: {
+            product: { select: { name: true, images: true } },
+          },
+        },
+      },
+    });
+    res.status(200).json({ order });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
