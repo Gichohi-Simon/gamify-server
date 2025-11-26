@@ -118,13 +118,6 @@ export const getAllOrders = async (req, res) => {
   try {
     const orders = await prisma.order.findMany({
       orderBy: { createdAt: "desc" },
-      include: {
-        orderItems: {
-          include: {
-            product: { select: { name: true, images: true } },
-          },
-        },
-      },
     });
     res.status(200).json({ orders });
   } catch (error) {
@@ -138,13 +131,6 @@ export const getSingleUserOrders = async (req, res) => {
     const singleUserOrders = await prisma.order.findMany({
       orderBy: { createdAt: "desc" },
       where: { userId },
-      include: {
-        orderItems: {
-          include: {
-            product: { select: { name: true, images: true } },
-          },
-        },
-      },
     });
     res.status(200).json({ singleUserOrders });
   } catch (error) {
@@ -158,14 +144,6 @@ export const getCurrentUserOrders = async (req, res) => {
     const orders = await prisma.order.findMany({
       orderBy: { createdAt: "desc" },
       where: { userId },
-      include: {
-        // remove order items if need be.
-        orderItems: {
-          include: {
-            product: { select: { name: true, images: true } },
-          },
-        },
-      },
     });
     res.status(200).json({ orders });
   } catch (error) {
