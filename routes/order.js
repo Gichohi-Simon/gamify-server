@@ -24,7 +24,7 @@ router.get("/total-orders", authenticate, authorizeAdmin, getTotalOrders);
 router.get("/total-sales", authenticate, authorizeAdmin, getTotalSales);
 router.get("/get-current-user-orders", authenticate, getCurrentUserOrders);
 router.get("/invoice/:orderId", authenticate, getInvoice);
-router.get("/get-user-order-by-id", authenticate, getSingleOrderById);
+router.get("/get-user-order-by-id/:orderId", authenticate, getSingleOrderById);
 router.get(
   "/singleUser-orders/:id",
   authenticate,
