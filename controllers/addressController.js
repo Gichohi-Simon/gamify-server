@@ -3,7 +3,8 @@ const prisma = new PrismaClient();
 
 export const createAddress = async (req, res) => {
   const userId = req.user.id;
-  const { companyName, street, floorNumber, city, postalCode } = req.body;
+  const { companyName, street, floorNumber, city, postalCode, phoneNumber } =
+    req.body;
 
   try {
     const existing = await prisma.deliveryAddress.findUnique({
@@ -24,6 +25,7 @@ export const createAddress = async (req, res) => {
         floorNumber,
         city,
         postalCode,
+        phoneNumber,
         userId,
       },
     });
@@ -37,35 +39,36 @@ export const createAddress = async (req, res) => {
 };
 
 export const updateAddress = async (req, res) => {
-  const { companyName, street, floorNumber, city, postalCode } = req.body;
+  const { companyName, street, floorNumber, city, postalCode, phoneNumber } =
+    req.body;
   const userId = req.user.id;
 
   try {
-    const addressIdExists = await prisma.deliveryAddress.findUnique({
-      where: {
-        userId,
-      },
+    const address = await prisma.deliveryAddress.findUnique({
+      where: { userId },
     });
 
-    if (!addressIdExists)
+    if (!address) {
       return res.status(404).json({ message: "Address not found" });
+    }
+
+    const updateData = {};
+
+    if (companyName !== undefined) updateData.companyName = companyName;
+    if (street !== undefined) updateData.street = street;
+    if (floorNumber !== undefined) updateData.floorNumber = floorNumber;
+    if (city !== undefined) updateData.city = city;
+    if (postalCode !== undefined) updateData.postalCode = postalCode;
+    if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber;
 
     const updatedAddress = await prisma.deliveryAddress.update({
-      where: {
-        userId,
-      },
-      data: {
-        companyName,
-        street,
-        floorNumber,
-        city,
-        postalCode,
-      },
+      where: { userId },
+      data: updateData,
     });
 
-    res.status(200).json({ updatedAddress });
+    return res.status(200).json({ updatedAddress });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       message: error.message,
     });
   }

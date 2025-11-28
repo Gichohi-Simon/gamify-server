@@ -73,6 +73,7 @@ model DeliveryAddress {
   floorNumber String? @db.VarChar(255)
   city        String? @db.VarChar(255)
   postalCode  String  @db.VarChar(50)
+  phoneNumber String? @db.VarChar(50)
   userId      String  @unique
   user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
