@@ -1,13 +1,21 @@
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
+const userSelect = {
+  id: true,
+  username: true,
+  email: true,
+  isAdmin: true,
+  isActive: true,
+  createdAt: true,
+};
+
 export const getAllUsers = async (req, res) => {
   try {
     const users = await prisma.user.findMany({
-      where: {
-        isActive: true,
-      },
+      select: userSelect,
     });
+
     res.status(200).json({
       users,
     });
@@ -22,6 +30,7 @@ export const getDeletedAccounts = async (req, res) => {
       where: {
         isActive: false,
       },
+      select: userSelect,
     });
     res.status(200).json({ deletedAccounts });
   } catch (error) {
@@ -36,6 +45,7 @@ export const getSingleUser = async (req, res) => {
       where: {
         id: id,
       },
+      select: userSelect,
     });
     res.status(200).json({ user });
   } catch (error) {
@@ -53,6 +63,7 @@ export const userAccountDeletion = async (req, res) => {
       data: {
         isActive: false,
       },
+      select: userSelect,
     });
 
     res.status(201).json({ deletedAccount });
@@ -71,6 +82,7 @@ export const restoreBannedUserToPlatform = async (req, res) => {
       data: {
         isActive: true,
       },
+      select: userSelect,
     });
     res.status(201).json({ restoreAccount });
   } catch (error) {
@@ -88,6 +100,7 @@ export const banUserFromPlatform = async (req, res) => {
       data: {
         isActive: false,
       },
+      select: userSelect,
     });
     res.status(200).json({ deletedUser });
   } catch (error) {
@@ -107,6 +120,7 @@ export const makeAdmin = async (req, res) => {
       data: {
         isAdmin: true,
       },
+      select: userSelect,
     });
     delete user.password;
 
@@ -128,9 +142,8 @@ export const removeAdmin = async (req, res) => {
       data: {
         isAdmin: false,
       },
+      select: userSelect,
     });
-
-    delete user.password;
 
     res.status(200).json({ user });
   } catch (error) {
