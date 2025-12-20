@@ -75,7 +75,7 @@ export const userAccountDeletion = async (req, res) => {
 export const restoreBannedUserToPlatform = async (req, res) => {
   const id = req.user.id;
   try {
-    const restoreAccount = await prisma.user.update({
+    const restoredAccount = await prisma.user.update({
       where: {
         id,
       },
@@ -84,7 +84,7 @@ export const restoreBannedUserToPlatform = async (req, res) => {
       },
       select: userSelect,
     });
-    res.status(201).json({ restoreAccount });
+    res.status(201).json({ restoredAccount });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
