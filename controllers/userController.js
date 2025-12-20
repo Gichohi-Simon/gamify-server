@@ -122,7 +122,6 @@ export const makeAdmin = async (req, res) => {
       },
       select: userSelect,
     });
-    delete user.password;
 
     res.status(201).json({ user });
   } catch (error) {
