@@ -34,9 +34,13 @@ export const signUp = async (req, res) => {
         email,
         password: hashedPassword,
       },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        isAdmin: true,
+      },
     });
-
-    delete savedUser.password;
 
     res.status(201).json({ user: savedUser });
   } catch (error) {
@@ -61,7 +65,7 @@ export const login = async (req, res) => {
     if (user.isActive !== true)
       return res
         .status(400)
-        .json({ error: "account has been deleted,contact admin" });
+        .json({ error: "account has been deleted, contact admin" });
 
     const passwordsMatch = await bcrypt.compare(password, user.password);
 
