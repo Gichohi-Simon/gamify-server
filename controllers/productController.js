@@ -51,7 +51,7 @@ export const getAllProducts = async (req, res) => {
     const limitNum = Number(limit);
 
     const skip = (pageNum - 1) * limitNum;
-    const filters = {};
+    const filters = { isActive: true };
 
     if (q.trim()) {
       filters.OR = [
@@ -227,10 +227,11 @@ export const updateProduct = async (req, res) => {
 export const deleteSingleProduct = async (req, res) => {
   const id = req.params.id;
   try {
-    await prisma.product.delete({
+    await prisma.product.update({
       where: {
         id,
       },
+      data: { isActive: false },
     });
     res.status(200).json({ message: "product deleted succesfully" });
   } catch (error) {

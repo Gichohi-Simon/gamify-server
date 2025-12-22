@@ -15,6 +15,7 @@ model User {
   isAdmin         Boolean          @default(false)
   createdAt       DateTime         @default(now())
   isActive        Boolean          @default(true)
+  isBanned        Boolean          @default(false)
   deliveryAddress DeliveryAddress?
   orders          Order[]
 
@@ -31,6 +32,7 @@ model Product {
   description    String      @db.Text
   images         String[]
   orderItems     OrderItem[]
+  isActive       Boolean     @default(true)
 
   @@map("product")
 }
