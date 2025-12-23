@@ -238,3 +238,12 @@ export const deleteSingleProduct = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const getTotalProducts = async (req, res) => {
+  try {
+    const totalProducts = await prisma.product.count();
+    res.status(200).json({ totalProducts });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

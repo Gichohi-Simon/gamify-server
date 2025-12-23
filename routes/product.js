@@ -8,6 +8,7 @@ import {
   updateProduct,
   getProductsByIds,
   getRandomFourProducts,
+  getTotalProducts,
 } from "../controllers/productController.js";
 import {
   authorizeAdmin,
@@ -27,6 +28,7 @@ router.post(
 router.get("/all-products", getAllProducts);
 router.get("/get-random-four-products", getRandomFourProducts);
 router.get("/getFirstFour", getFirstFourProducts);
+router.get("/get-total-products", getTotalProducts);
 router.get("/by-ids", getProductsByIds);
 router.get("/:id", getSingleProduct);
 router.delete("/:id", authenticate, authorizeAdmin, deleteSingleProduct);
