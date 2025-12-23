@@ -4,6 +4,7 @@ import {
   banUserFromPlatform,
   getAllUsers,
   getDeletedAccounts,
+  getTotalUsers,
   getSingleUser,
   makeAdmin,
   removeAdmin,
@@ -23,6 +24,7 @@ router.get(
   authorizeAdmin,
   getDeletedAccounts,
 );
+router.get("/get-total-users", authenticate, authorizeAdmin, getTotalUsers);
 router.patch("/delete-my-account", authenticate, userAccountDeletion);
 router.get("/single-user/:id", authenticate, authorizeAdmin, getSingleUser);
 router.patch(

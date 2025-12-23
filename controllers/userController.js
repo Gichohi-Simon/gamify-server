@@ -53,6 +53,15 @@ export const getSingleUser = async (req, res) => {
   }
 };
 
+export const getTotalUsers = async (req, res) => {
+  try {
+    const totalUsers = await prisma.user.count();
+    res.status(200).json({ totalUsers });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const userAccountDeletion = async (req, res) => {
   const id = req.user.id;
   try {
