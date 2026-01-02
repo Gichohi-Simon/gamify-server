@@ -13,25 +13,26 @@ export const signUp = async (req, res) => {
       return res.status(400).json({ error: "all fields are required" });
     }
 
+    const normalizedEmail = email.toLowerCase();
+
     const existingUser = await prisma.user.findUnique({
       where: {
-        email,
+        email: normalizedEmail,
       },
     });
 
     if (existingUser) {
-      return res.status(400).json({
-        msg: "user already exists",
+      return res.status(409).json({
+        msg: "Account already exists",
       });
     }
 
-    const salt = await bcrypt.genSalt(12);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(password, 12);
 
     const savedUser = await prisma.user.create({
       data: {
         username,
-        email,
+        email: normalizedEmail,
         password: hashedPassword,
       },
       select: {
@@ -44,8 +45,9 @@ export const signUp = async (req, res) => {
 
     res.status(201).json({ user: savedUser });
   } catch (error) {
+    console.error(error.message);
     res.status(500).json({
-      error: error.message,
+      message: "Something went wrong. Please try again later",
     });
   }
 };
@@ -60,17 +62,18 @@ export const login = async (req, res) => {
       },
     });
 
-    if (!user) return res.status(400).json({ error: "user does not exist" });
+    if (!user)
+      return res.status(401).json({ error: "Invalid email or password" });
 
-    if (user.isActive !== true)
+    if (!user.isActive || user.isBanned)
       return res
-        .status(400)
-        .json({ error: "account has been deleted, contact admin" });
+        .status(403)
+        .json({ message: "Account is inactive or banned, contact admin" });
 
     const passwordsMatch = await bcrypt.compare(password, user.password);
 
     if (!passwordsMatch)
-      return res.status(400).json({ msg: "passwords do not match" });
+      return res.status(401).json({ message: "Invalid email or password" });
 
     createToken(res, user.id);
 
@@ -80,8 +83,9 @@ export const login = async (req, res) => {
       user,
     });
   } catch (error) {
+    console.error(error.message);
     res.status(500).json({
-      error: error.message,
+      message: "something went wrong please try again",
     });
   }
 };
@@ -101,7 +105,7 @@ export const logoutCurrentUser = async (req, res) => {
 };
 
 export const checkCookie = async (req, res) => {
-  const token = req.cookies.jwt;
+  const token = req.cookies?.jwt;
 
   if (!token) {
     return res.status(401).json({ message: "user not logged in" });
@@ -128,6 +132,9 @@ export const checkCookie = async (req, res) => {
 
     res.status(200).json({ user });
   } catch (error) {
-    res.status(401).json({ message: error.message });
+    console.error(error.message);
+    return res
+      .status(401)
+      .json({ message: "Inavalid or expired token. Please log in again" });
   }
 };
