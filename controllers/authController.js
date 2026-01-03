@@ -10,7 +10,7 @@ export const signUp = async (req, res) => {
     const { username, email, password } = req.body;
 
     if (!username || !email || !password) {
-      return res.status(400).json({ error: "all fields are required" });
+      return res.status(400).json({ message: "all fields are required" });
     }
 
     const normalizedEmail = email.toLowerCase();
@@ -23,7 +23,7 @@ export const signUp = async (req, res) => {
 
     if (existingUser) {
       return res.status(409).json({
-        msg: "Account already exists",
+        message: "Account already exists",
       });
     }
 
@@ -63,7 +63,7 @@ export const login = async (req, res) => {
     });
 
     if (!user)
-      return res.status(401).json({ error: "Invalid email or password" });
+      return res.status(401).json({ message: "Invalid email or password" });
 
     if (!user.isActive || user.isBanned)
       return res
