@@ -38,11 +38,11 @@ export const createProduct = async (req, res) => {
 
     res.status(201).json({ newProduct });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error.message);
+    res.status(500).json({ message: "failed to create product" });
   }
 };
 
-// {{API_URL}}/product/all-products?q=film&page=1
 export const getAllProducts = async (req, res) => {
   try {
     const { page = 1, limit = 8, q = "" } = req.query;
@@ -81,7 +81,8 @@ export const getAllProducts = async (req, res) => {
       products,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error.message);
+    res.status(500).json({ message: "failed to get all products" });
   }
 };
 
@@ -95,7 +96,8 @@ export const getFirstFourProducts = async (req, res) => {
     });
     res.status(200).json({ products });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error.message);
+    res.status(500).json({ message: "failed to get first four products" });
   }
 };
 
@@ -112,7 +114,8 @@ export const getRandomFourProducts = async (req, res) => {
 
     res.status(200).json({ products });
   } catch (error) {
-    res.status(200).json({ error: error.message });
+    console.error(error.message);
+    res.status(200).json({ message: "failed to get random four products" });
   }
 };
 
@@ -127,7 +130,8 @@ export const getSingleProduct = async (req, res) => {
 
     res.status(200).json({ singleProduct });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error.message);
+    res.status(200).json({ message: "failed to get single product" });
   }
 };
 
@@ -136,7 +140,7 @@ export const getProductsByIds = async (req, res) => {
     const idsParam = req.query.ids;
 
     if (!idsParam) {
-      return res.status(400).json({ error: "No product IDs provided" });
+      return res.status(400).json({ message: "No product IDs provided" });
     }
 
     const ids = idsParam
@@ -145,7 +149,7 @@ export const getProductsByIds = async (req, res) => {
       .filter((id) => id.length > 0);
 
     if (ids.length === 0) {
-      return res.status(400).json({ error: "Invalid product IDs" });
+      return res.status(400).json({ message: "Invalid product IDs" });
     }
 
     const products = await prisma.product.findMany({
@@ -157,8 +161,9 @@ export const getProductsByIds = async (req, res) => {
     });
 
     res.status(200).json({ products });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error(error.message);
+    res.status(200).json({ message: "failed to get a single product" });
   }
 };
 
@@ -170,7 +175,8 @@ export const updateProduct = async (req, res) => {
     const existing = await prisma.product.findUnique({
       where: { id },
     });
-    if (!existing) return res.status(404).json({ error: "Product not found" });
+    if (!existing)
+      return res.status(404).json({ message: "Product not found" });
 
     let removeList = [];
     if (removeImages) {
@@ -220,7 +226,8 @@ export const updateProduct = async (req, res) => {
 
     res.status(200).json({ updatedProduct });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error.message);
+    res.status(200).json({ message: "failed to get random four products" });
   }
 };
 
@@ -233,7 +240,7 @@ export const deleteSingleProduct = async (req, res) => {
       },
       data: { isActive: false },
     });
-    res.status(200).json({ message: "product deleted succesfully" });
+    res.status(200).json({ message: "failed to update product" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -244,6 +251,7 @@ export const getTotalProducts = async (req, res) => {
     const totalProducts = await prisma.product.count();
     res.status(200).json({ totalProducts });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error.message);
+    res.status(200).json({ message: "failed to get total products" });
   }
 };
