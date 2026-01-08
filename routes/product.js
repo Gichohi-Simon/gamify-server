@@ -31,7 +31,7 @@ router.get("/getFirstFour", getFirstFourProducts);
 router.get("/get-total-products", getTotalProducts);
 router.get("/by-ids", getProductsByIds);
 router.get("/:id", getSingleProduct);
-router.delete("/:id", authenticate, authorizeAdmin, deleteSingleProduct);
+router.patch("/:id", authenticate, authorizeAdmin, deleteSingleProduct);
 router.patch(
   "/update-product/:id",
   authenticate,

@@ -89,6 +89,7 @@ export const getAllProducts = async (req, res) => {
 export const getFirstFourProducts = async (req, res) => {
   try {
     const products = await prisma.product.findMany({
+      where: { isActive: true },
       take: 4,
       orderBy: {
         id: "desc",
@@ -103,7 +104,9 @@ export const getFirstFourProducts = async (req, res) => {
 
 export const getRandomFourProducts = async (req, res) => {
   try {
-    const allProducts = await prisma.product.findMany();
+    const allProducts = await prisma.product.findMany({
+      where: { isActive: true },
+    });
 
     for (let i = allProducts.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -115,7 +118,7 @@ export const getRandomFourProducts = async (req, res) => {
     res.status(200).json({ products });
   } catch (error) {
     console.error(error.message);
-    res.status(200).json({ message: "failed to get random four products" });
+    res.status(500).json({ message: "failed to get random four products" });
   }
 };
 
@@ -128,10 +131,14 @@ export const getSingleProduct = async (req, res) => {
       },
     });
 
+    if (!singleProduct || !singleProduct.isActive) {
+      return res.status(404).json({ message: "Product not found or inactive" });
+    }
+
     res.status(200).json({ singleProduct });
   } catch (error) {
     console.error(error.message);
-    res.status(200).json({ message: "failed to get single product" });
+    res.status(500).json({ message: "failed to get single product" });
   }
 };
 
@@ -154,16 +161,15 @@ export const getProductsByIds = async (req, res) => {
 
     const products = await prisma.product.findMany({
       where: {
-        id: {
-          in: ids,
-        },
+        id: { in: ids },
+        isActive: true,
       },
     });
 
     res.status(200).json({ products });
   } catch (error) {
     console.error(error.message);
-    res.status(200).json({ message: "failed to get a single product" });
+    res.status(500).json({ message: "failed to get a single product" });
   }
 };
 
@@ -175,8 +181,8 @@ export const updateProduct = async (req, res) => {
     const existing = await prisma.product.findUnique({
       where: { id },
     });
-    if (!existing)
-      return res.status(404).json({ message: "Product not found" });
+    if (!existing || !existing.isActive)
+      return res.status(404).json({ message: "Product not found or inactive" });
 
     let removeList = [];
     if (removeImages) {
@@ -227,7 +233,7 @@ export const updateProduct = async (req, res) => {
     res.status(200).json({ updatedProduct });
   } catch (error) {
     console.error(error.message);
-    res.status(200).json({ message: "failed to get random four products" });
+    res.status(500).json({ message: "failed to update product" });
   }
 };
 
@@ -240,7 +246,7 @@ export const deleteSingleProduct = async (req, res) => {
       },
       data: { isActive: false },
     });
-    res.status(200).json({ message: "failed to update product" });
+    res.status(200).json({ message: "product deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -248,10 +254,12 @@ export const deleteSingleProduct = async (req, res) => {
 
 export const getTotalProducts = async (req, res) => {
   try {
-    const totalProducts = await prisma.product.count();
+    const totalProducts = await prisma.product.count({
+      where: { isActive: true },
+    });
     res.status(200).json({ totalProducts });
   } catch (error) {
     console.error(error.message);
-    res.status(200).json({ message: "failed to get total products" });
+    res.status(500).json({ message: "failed to get total products" });
   }
 };
