@@ -39,14 +39,38 @@ export const getDeletedAccounts = async (req, res) => {
 };
 
 export const getSingleUser = async (req, res) => {
-  const id = req.params.id;
+  const { id } = req.params;
+
   try {
-    const user = await prisma.user.findUnique({
-      where: {
-        id: id,
+    const userSelect = {
+      id: true,
+      username: true,
+      email: true,
+      isAdmin: true,
+      isActive: true,
+      isBanned: true,
+      createdAt: true,
+      deliveryAddress: {
+        select: {
+          companyName: true,
+          street: true,
+          floorNumber: true,
+          city: true,
+          postalCode: true,
+          phoneNumber: true,
+        },
       },
+    };
+
+    const user = await prisma.user.findUnique({
+      where: { id },
       select: userSelect,
     });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     res.status(200).json({ user });
   } catch (error) {
     res.status(500).json({ error: error.message });
