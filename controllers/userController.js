@@ -6,6 +6,7 @@ const userSelect = {
   username: true,
   email: true,
   isAdmin: true,
+  isBanned: true,
   isActive: true,
   createdAt: true,
 };
@@ -130,7 +131,7 @@ export const restoreBannedUserToPlatform = async (req, res) => {
 export const banUserFromPlatform = async (req, res) => {
   const id = req.params.id;
   try {
-    const deletedUser = await prisma.user.update({
+    const bannedUser = await prisma.user.update({
       where: {
         id,
       },
@@ -140,7 +141,7 @@ export const banUserFromPlatform = async (req, res) => {
       },
       select: userSelect,
     });
-    res.status(200).json({ deletedUser });
+    res.status(200).json({ bannedUser });
   } catch (error) {
     res.status(500).json({
       error: error.message,
