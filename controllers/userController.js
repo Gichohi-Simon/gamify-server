@@ -79,7 +79,7 @@ export const getSingleUser = async (req, res) => {
 
 export const getTotalUsers = async (req, res) => {
   try {
-    const totalUsers = await prisma.user.count();
+    const totalUsers = await prisma.user.count({ where: { isActive: true } });
     res.status(200).json({ totalUsers });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -106,7 +106,7 @@ export const userAccountDeletion = async (req, res) => {
 };
 
 export const restoreBannedUserToPlatform = async (req, res) => {
-  const id = req.user.id;
+  const id = req.params.id;
   try {
     const restoredAccount = await prisma.user.update({
       where: {
@@ -114,10 +114,14 @@ export const restoreBannedUserToPlatform = async (req, res) => {
       },
       data: {
         isActive: true,
+        isBanned: false,
       },
       select: userSelect,
     });
-    res.status(201).json({ restoredAccount });
+    res.status(201).json({
+      message: "User restored successfully",
+      restoredAccount,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -131,6 +135,7 @@ export const banUserFromPlatform = async (req, res) => {
         id,
       },
       data: {
+        isBanned: true,
         isActive: false,
       },
       select: userSelect,
