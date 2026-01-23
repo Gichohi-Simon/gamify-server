@@ -152,7 +152,8 @@ export const getCurrentUserOrders = async (req, res) => {
 };
 
 export const getSingleOrderById = async (req, res) => {
-  const orderId = await req.params.orderId;
+  const { orderId } = req.params;
+
   try {
     const order = await prisma.order.findUnique({
       where: { id: orderId },
@@ -162,8 +163,19 @@ export const getSingleOrderById = async (req, res) => {
             product: { select: { name: true, images: true } },
           },
         },
+        user: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            deliveryAddress: true,
+          },
+        },
       },
     });
+
+    if (!order) return res.status(404).json({ error: "Order not found" });
+
     res.status(200).json({ order });
   } catch (error) {
     res.status(500).json({ error: error.message });
