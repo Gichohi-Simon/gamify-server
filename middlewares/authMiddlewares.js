@@ -4,11 +4,9 @@ const prisma = new PrismaClient();
 
 export const authenticate = async (req, res, next) => {
   try {
-    let token;
+    const token = req.cookies?.jwt;
 
-    token = req.cookies?.jwt;
-
-    if (!token) return res.status(404).json({ message: "token not found" });
+    if (!token) return res.status(401).json({ message: "token not found" });
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
@@ -16,24 +14,41 @@ export const authenticate = async (req, res, next) => {
       where: {
         id: decoded.userId,
       },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        role: true,
+        isActive: true,
+        isBanned: true,
+        authProvider: true,
+      },
     });
 
     if (!user) {
       return res.status(401).json({ message: "User not found" });
     }
 
-    req.user = user;
+    if (!user.isActive || user.isBanned) {
+      return res
+        .status(403)
+        .json({ message: "Account disabled, contact admin" });
+    }
 
+    req.user = user;
     next();
-  } catch (error) {
-    return res.status(401).json({ message: error.message });
+  } catch {
+    return res.status(401).json({ message: "not authorized" });
   }
 };
 
-export const authorizeAdmin = async (req, res, next) => {
-  if (req.user && req.user?.isAdmin) {
-    next();
-  } else {
-    res.status(401).json({ message: "only admin can access" });
-  }
+export const authorizeAdmin = (req, res, next) => {
+  if (req.user?.role === "ADMIN") return next();
+  return res.status(403).json({ message: "only admin can access" });
+};
+
+export const authorizeAdminOrEmployee = (req, res, next) => {
+  if (req.user?.role === "ADMIN" || req.user?.role === "EMPLOYEE")
+    return next();
+  return res.status(403).json({ message: "Admin or employees only" });
 };
