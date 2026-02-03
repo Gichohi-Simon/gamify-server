@@ -7,12 +7,28 @@ datasource db {
   url      = "postgresql://postgres:joVEXEwZGmukMdXfygxyhtsRciskaxQt@shortline.proxy.rlwy.net:36200/railway"
 }
 
+enum Role {
+  USER
+  ADMIN
+  EMPLOYEE
+}
+
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+}
+
 model User {
-  id              String           @id @default(uuid())
-  username        String           @db.VarChar(255)
-  email           String           @unique @db.VarChar(255)
-  password        String           @db.VarChar(255)
-  isAdmin         Boolean          @default(false)
+  id       String @id @default(uuid())
+  username String @db.VarChar(255)
+  email    String @unique @db.VarChar(255)
+
+  password     String?      @db.VarChar(255)
+  googleSub    String?      @unique
+  authProvider AuthProvider @default(LOCAL)
+
+  role Role @default(USER)
+
   createdAt       DateTime         @default(now())
   isActive        Boolean          @default(true)
   isBanned        Boolean          @default(false)
