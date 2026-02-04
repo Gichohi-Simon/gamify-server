@@ -1,8 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import PDFDocument from "pdfkit";
-import fs from "fs";
-import path from "path";
 
 const prisma = new PrismaClient();
 
@@ -14,44 +12,61 @@ function calcPrices(orderItems) {
 
   const shippingPrice = 0;
   const taxRate = 0.16;
-  const taxPrice = (itemsPrice * taxRate).toFixed(2);
-  const totalPrice = (
-    itemsPrice +
-    shippingPrice +
-    parseFloat(taxPrice)
-  ).toFixed(2);
+
+  const taxPrice = Number((itemsPrice * taxRate).toFixed(2));
+  const totalPrice = Number((itemsPrice + shippingPrice + taxPrice).toFixed(2));
 
   return { itemsPrice, shippingPrice, taxPrice, totalPrice };
 }
 
-function generateInvoice(order, res) {
-  const doc = new PDFDocument();
-  const filename = `invoice-${order.invoiceNumber}.pdf`;
-  const filepath = path.join("/tmp", filename);
+function canAccessOrder(reqUser, orderUserId) {
+  if (!reqUser) return false;
+  if (reqUser.role === "ADMIN" || reqUser.role === "EMPLOYEE") return true;
+  return reqUser.id === orderUserId;
+}
 
-  doc.pipe(fs.createWriteStream(filepath));
+function generateInvoiceToResponse(order, res) {
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader(
+    "Content-Disposition",
+    `inline; filename="invoice-${order.invoiceNumber}.pdf"`,
+  );
 
-  doc.text("Gamify General Supplies").fontSize(32).moveDown();
-  doc
-    .fontSize(12)
-    .text(`Invoice Number: ${order.invoiceNumber}`)
-    .text(`Date: ${new Date().toLocaleDateString()}`)
-    .text(`Customer ID: ${order.userId}`)
-    .moveDown();
+  const doc = new PDFDocument({ margin: 50 });
+  doc.pipe(res);
 
-  doc.text("Items:");
+  doc.fontSize(22).text("Gamify General Supplies", { align: "center" });
+  doc.moveDown();
+
+  doc.fontSize(12);
+  doc.text(`Invoice Number: ${order.invoiceNumber}`);
+  doc.text(
+    `Date: ${new Date(order.createdAt || Date.now()).toLocaleDateString()}`,
+  );
+  doc.text(`Customer ID: ${order.userId}`);
+  doc.moveDown();
+
+  doc.fontSize(14).text("Items:");
+  doc.moveDown(0.5);
+
   order.orderItems.forEach((item) => {
-    doc.text(`${item.product.name} x${item.quantity} - ${item.price} each`);
+    const line = `${item.product?.name || "Product"} x${item.quantity} - KES ${item.price} each`;
+    doc.fontSize(12).text(line);
   });
 
   doc.moveDown();
-  doc.text(`Tax: ${order.taxPrice}`);
-  doc.text(`Total: ${order.totalPrice}`);
+  doc
+    .fontSize(12)
+    .text(`Items Total: KES ${Number(order.itemsPrice).toFixed(2)}`);
+  doc.text(`Shipping: KES ${Number(order.shippingPrice).toFixed(2)}`);
+  doc.text(`Tax: KES ${Number(order.taxPrice).toFixed(2)}`);
   doc.moveDown();
+  doc.fontSize(14).text(`Total: KES ${Number(order.totalPrice).toFixed(2)}`);
+
+  doc.moveDown(2);
   doc.fontSize(10).text("Thank you for your business!", { align: "center" });
 
   doc.end();
-  doc.pipe(res);
 }
 
 export const createOrder = async (req, res) => {
@@ -59,27 +74,52 @@ export const createOrder = async (req, res) => {
     const { orderItems } = req.body;
     const userId = req.user?.id;
 
-    if (!orderItems || orderItems.length === 0) {
+    if (!userId) {
+      return res.status(401).json({ message: "Not authorized" });
+    }
+
+    if (!Array.isArray(orderItems) || orderItems.length === 0) {
       return res.status(400).json({ message: "No order items provided" });
+    }
+
+    for (const item of orderItems) {
+      if (!item?.productId) {
+        return res
+          .status(400)
+          .json({ message: "Each order item must have productId" });
+      }
+      const qty = Number(item.quantity);
+      if (!Number.isInteger(qty) || qty <= 0) {
+        return res
+          .status(400)
+          .json({ message: "Quantity must be a positive integer" });
+      }
     }
 
     const invoiceNumber = `INV-${uuidv4().slice(0, 8).toUpperCase()}`;
 
     const productIds = orderItems.map((item) => item.productId);
+
     const dbProducts = await prisma.product.findMany({
-      where: { id: { in: productIds } },
+      where: {
+        id: { in: productIds },
+        isActive: true,
+      },
+      select: { id: true, price: true, name: true, images: true },
     });
 
     const dbOrderItems = [];
     for (const item of orderItems) {
       const dbProduct = dbProducts.find((p) => p.id === item.productId);
       if (!dbProduct) {
-        throw new Error(`Product not found: ${item.productId}`);
+        return res.status(404).json({
+          message: `Product not found or inactive: ${item.productId}`,
+        });
       }
 
       dbOrderItems.push({
         productId: dbProduct.id,
-        quantity: item.quantity,
+        quantity: Number(item.quantity),
         price: dbProduct.price,
       });
     }
@@ -92,12 +132,12 @@ export const createOrder = async (req, res) => {
         userId,
         itemsPrice,
         shippingPrice,
-        taxPrice: Number(taxPrice),
-        totalPrice: Number(totalPrice),
+        taxPrice,
+        totalPrice,
+        invoiceNumber,
         orderItems: {
           create: dbOrderItems,
         },
-        invoiceNumber,
       },
       include: {
         orderItems: {
@@ -110,7 +150,8 @@ export const createOrder = async (req, res) => {
 
     return res.status(201).json({ order });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    console.error(error);
+    return res.status(500).json({ message: "Failed to create order" });
   }
 };
 
@@ -119,35 +160,45 @@ export const getAllOrders = async (req, res) => {
     const orders = await prisma.order.findMany({
       orderBy: { createdAt: "desc" },
     });
-    res.status(200).json({ orders });
+
+    return res.status(200).json({ orders });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error);
+    return res.status(500).json({ message: "Failed to get orders" });
   }
 };
 
 export const getSingleUserOrders = async (req, res) => {
   const userId = req.params.id;
+
   try {
     const singleUserOrders = await prisma.order.findMany({
       orderBy: { createdAt: "desc" },
       where: { userId },
     });
-    res.status(200).json({ singleUserOrders });
+
+    return res.status(200).json({ singleUserOrders });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error);
+    return res.status(500).json({ message: "Failed to get user orders" });
   }
 };
 
 export const getCurrentUserOrders = async (req, res) => {
-  const userId = req.user.id;
+  const userId = req.user?.id;
+
   try {
+    if (!userId) return res.status(401).json({ message: "Not authorized" });
+
     const orders = await prisma.order.findMany({
       orderBy: { createdAt: "desc" },
       where: { userId },
     });
-    res.status(200).json({ orders });
+
+    return res.status(200).json({ orders });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error);
+    return res.status(500).json({ message: "Failed to get your orders" });
   }
 };
 
@@ -174,59 +225,75 @@ export const getSingleOrderById = async (req, res) => {
       },
     });
 
-    if (!order) return res.status(404).json({ error: "Order not found" });
+    if (!order) return res.status(404).json({ message: "Order not found" });
 
-    res.status(200).json({ order });
+    if (!canAccessOrder(req.user, order.userId)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    return res.status(200).json({ order });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error);
+    return res.status(500).json({ message: "Failed to get order" });
   }
 };
 
 export const getTotalOrders = async (req, res) => {
   try {
     const totalOrders = await prisma.order.count();
-    res.status(200).json({ totalOrders });
+    return res.status(200).json({ totalOrders });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error);
+    return res.status(500).json({ message: "Failed to get total orders" });
   }
 };
 
 export const getTotalSales = async (req, res) => {
   try {
-    const orders = await prisma.order.findMany();
-    const totalSales = orders.reduce(
-      (sum, order) => sum + Number(order.totalPrice),
-      0,
-    );
-    res.status(200).json({ totalSales });
+    const result = await prisma.order.aggregate({
+      _sum: { totalPrice: true },
+    });
+
+    const totalSales = Number(result._sum.totalPrice || 0);
+
+    return res.status(200).json({ totalSales });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error);
+    return res.status(500).json({ message: "Failed to get total sales" });
   }
 };
 
 export const markOrderAsDelivered = async (req, res) => {
   const orderId = req.params.orderId;
+
   try {
     const delivered = await prisma.order.update({
       where: { id: orderId },
       data: { isDelivered: true, deliveredAt: new Date() },
     });
-    res.status(201).json({ delivered });
+
+    return res.status(200).json({ delivered });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error);
+    return res
+      .status(500)
+      .json({ message: "Failed to mark order as delivered" });
   }
 };
 
 export const markOrderAsPaid = async (req, res) => {
   const orderId = req.params.orderId;
+
   try {
-    const paidProduct = await prisma.order.update({
+    const paidOrder = await prisma.order.update({
       where: { id: orderId },
       data: { isPaid: true, paidAt: new Date() },
     });
-    res.status(201).json({ paidProduct });
+
+    return res.status(200).json({ paidOrder });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error);
+    return res.status(500).json({ message: "Failed to mark order as paid" });
   }
 };
 
@@ -235,18 +302,21 @@ export const getInvoice = async (req, res) => {
     const order = await prisma.order.findUnique({
       where: { id: req.params.orderId },
       include: {
-        orderItems: {
-          include: { product: true },
-        },
+        orderItems: { include: { product: true } },
       },
     });
 
     if (!order) {
-      return res.status(404).json({ error: "order not found" });
+      return res.status(404).json({ message: "Order not found" });
     }
 
-    generateInvoice(order, res);
+    if (!canAccessOrder(req.user, order.userId)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    return generateInvoiceToResponse(order, res);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error);
+    return res.status(500).json({ message: "Failed to generate invoice" });
   }
 };
