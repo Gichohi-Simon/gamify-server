@@ -5,7 +5,7 @@ const userSelect = {
   id: true,
   username: true,
   email: true,
-  isAdmin: true,
+  role: true,
   isBanned: true,
   isActive: true,
   createdAt: true,
@@ -43,11 +43,11 @@ export const getSingleUser = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const userSelect = {
+    const singleUserSelect = {
       id: true,
       username: true,
       email: true,
-      isAdmin: true,
+      role: true,
       isActive: true,
       isBanned: true,
       createdAt: true,
@@ -65,7 +65,7 @@ export const getSingleUser = async (req, res) => {
 
     const user = await prisma.user.findUnique({
       where: { id },
-      select: userSelect,
+      select: singleUserSelect,
     });
 
     if (!user) {
@@ -151,13 +151,14 @@ export const banUserFromPlatform = async (req, res) => {
 
 export const makeAdmin = async (req, res) => {
   const id = req.params.id;
+
   try {
     const user = await prisma.user.update({
       where: {
         id,
       },
       data: {
-        isAdmin: true,
+        role: "ADMIN",
       },
       select: userSelect,
     });
@@ -178,11 +179,44 @@ export const removeAdmin = async (req, res) => {
         id,
       },
       data: {
-        isAdmin: false,
+        role: "USER",
       },
       select: userSelect,
     });
 
+    res.status(200).json({ user });
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+    });
+  }
+};
+
+export const makeEmployee = async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const user = await prisma.user.update({
+      where: { id },
+      data: { role: "EMPLOYEE" },
+      select: userSelect,
+    });
+
+    res.status(201).json({ user });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const removeEmployee = async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const user = await prisma.user.update({
+      where: { id },
+      data: { role: "USER" },
+      select: userSelect,
+    });
     res.status(200).json({ user });
   } catch (error) {
     res.status(500).json({

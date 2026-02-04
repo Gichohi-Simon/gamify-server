@@ -9,14 +9,17 @@ import {
   makeAdmin,
   removeAdmin,
   restoreBannedUserToPlatform,
+  makeEmployee,
+  removeEmployee,
 } from "../controllers/userController.js";
 import {
   authenticate,
   authorizeAdmin,
+  authorizeAdminOrEmployee,
 } from "../middlewares/authMiddlewares.js";
 const router = express.Router();
 
-router.get("/allUsers", authenticate, authorizeAdmin, getAllUsers);
+router.get("/allUsers", authenticate, authorizeAdminOrEmployee, getAllUsers);
 
 router.get(
   "/getDeletedAccounts",
@@ -24,9 +27,19 @@ router.get(
   authorizeAdmin,
   getDeletedAccounts,
 );
-router.get("/get-total-users", authenticate, authorizeAdmin, getTotalUsers);
+router.get(
+  "/get-total-users",
+  authenticate,
+  authorizeAdminOrEmployee,
+  getTotalUsers,
+);
 router.patch("/delete-my-account", authenticate, userAccountDeletion);
-router.get("/single-user/:id", authenticate, authorizeAdmin, getSingleUser);
+router.get(
+  "/single-user/:id",
+  authenticate,
+  authorizeAdminOrEmployee,
+  getSingleUser,
+);
 router.patch(
   "/ban-user-from-platform/:id",
   authenticate,
@@ -41,5 +54,12 @@ router.patch(
 );
 router.patch("/makeAdmin/:id", authenticate, authorizeAdmin, makeAdmin);
 router.patch("/removeAdmin/:id", authenticate, authorizeAdmin, removeAdmin);
+router.patch("/makeEmployee/:id", authenticate, authorizeAdmin, makeEmployee);
+router.patch(
+  "/removeEmployee/:id",
+  authenticate,
+  authorizeAdmin,
+  removeEmployee,
+);
 
 export default router;
