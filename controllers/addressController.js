@@ -7,6 +7,12 @@ export const createAddress = async (req, res) => {
     req.body;
 
   try {
+    if (!companyName || !street || !postalCode) {
+      return res.status(400).json({
+        message: "companyName, street and postalCode are required",
+      });
+    }
+
     const existing = await prisma.deliveryAddress.findUnique({
       where: {
         userId,
@@ -20,20 +26,21 @@ export const createAddress = async (req, res) => {
 
     const newAddress = await prisma.deliveryAddress.create({
       data: {
-        companyName,
-        street,
-        floorNumber,
-        city,
-        postalCode,
-        phoneNumber,
+        companyName: companyName.trim(),
+        street: street.trim(),
+        floorNumber: floorNumber?.trim() || null,
+        city: city?.trim() || null,
+        postalCode: postalCode.trim(),
+        phoneNumber: phoneNumber?.trim() || null,
         userId,
       },
     });
 
     res.status(201).json({ newAddress });
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
+    console.error(error.message);
+    return res.status(500).json({
+      message: "Failed to create address",
     });
   }
 };
@@ -44,26 +51,31 @@ export const updateAddress = async (req, res) => {
   const userId = req.user.id;
 
   try {
-    const address = await prisma.deliveryAddress.findUnique({
+    const existing = await prisma.deliveryAddress.findUnique({
       where: { userId },
     });
-    if (!address) return res.status(404).json({ message: "Address not found" });
+
+    if (!existing)
+      return res.status(404).json({ message: "Address not found" });
 
     const updatedAddress = await prisma.deliveryAddress.update({
       where: { userId },
       data: {
-        companyName,
-        street,
-        floorNumber,
-        city,
-        postalCode,
-        phoneNumber,
+        companyName: companyName?.trim() ?? existing.companyName,
+        street: street?.trim() ?? existing.street,
+        floorNumber: floorNumber?.trim() ?? existing.floorNumber,
+        city: city?.trim() ?? existing.city,
+        postalCode: postalCode?.trim() ?? existing.postalCode,
+        phoneNumber: phoneNumber?.trim() ?? existing.phoneNumber,
       },
     });
 
     res.status(200).json({ updatedAddress });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error(error.message);
+    return res.status(500).json({
+      message: "Failed to update address",
+    });
   }
 };
 
@@ -80,8 +92,9 @@ export const getLoggedInUserAddress = async (req, res) => {
 
     res.status(200).json({ address });
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
+    console.error(error.message);
+    return res.status(500).json({
+      message: "Failed to fetch address",
     });
   }
 };
@@ -106,8 +119,9 @@ export const deleteAddress = async (req, res) => {
       message: "address deleted successfully",
     });
   } catch (error) {
+    console.error(error.message);
     res.status(500).json({
-      message: error.message,
+      message: "Failed to delete address",
     });
   }
 };
