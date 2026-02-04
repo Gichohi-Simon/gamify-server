@@ -8,20 +8,30 @@ export const createProduct = async (req, res) => {
   const { name, price, description, category } = req.body;
 
   try {
+    if (!name || !price || !description || !category) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
     let images = [];
     let cloudinary_ids = [];
 
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
-        const uploadResult = await cloudinary.uploader.upload(file.path, {
-          folder: "products",
-          resource_type: "image",
-        });
+        try {
+          const uploadResult = await cloudinary.uploader.upload(file.path, {
+            folder: "products",
+            resource_type: "image",
+          });
 
-        images.push(uploadResult.secure_url);
-        cloudinary_ids.push(uploadResult.public_id);
-
-        fs.unlinkSync(file.path);
+          images.push(uploadResult.secure_url);
+          cloudinary_ids.push(uploadResult.public_id);
+        } finally {
+          try {
+            fs.unlinkSync(file.path);
+          } catch (err) {
+            console.warn("Failed to delete temp file:", err.message);
+          }
+        }
       }
     }
 
@@ -32,7 +42,7 @@ export const createProduct = async (req, res) => {
         description,
         category,
         images,
-        cloudinary_ids: cloudinary_ids,
+        cloudinary_ids,
       },
     });
 
@@ -50,10 +60,19 @@ export const getAllProducts = async (req, res) => {
     const pageNum = Number(page);
     const limitNum = Number(limit);
 
+    if (
+      Number.isNaN(pageNum) ||
+      Number.isNaN(limitNum) ||
+      pageNum < 1 ||
+      limitNum < 1
+    ) {
+      return res.status(400).json({ message: "Invalid pagination params" });
+    }
+
     const skip = (pageNum - 1) * limitNum;
     const filters = { isActive: true };
 
-    if (q.trim()) {
+    if (String(q).trim()) {
       filters.OR = [
         { name: { contains: q, mode: "insensitive" } },
         { category: { contains: q, mode: "insensitive" } },
@@ -92,7 +111,7 @@ export const getFirstFourProducts = async (req, res) => {
       where: { isActive: true },
       take: 4,
       orderBy: {
-        id: "desc",
+        createdAt: "desc",
       },
     });
     res.status(200).json({ products });
