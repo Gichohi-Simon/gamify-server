@@ -1,6 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import PDFDocument from "pdfkit";
+import { sendResendEmails } from "../utils/resend";
+import {
+  adminNewOrderEmail,
+  customerOrderPlacedEmail,
+} from "../utils/orderEmailTemplates";
 
 const prisma = new PrismaClient();
 
@@ -145,8 +150,34 @@ export const createOrder = async (req, res) => {
             product: { select: { name: true, images: true } },
           },
         },
+        user: { select: { id: true, username: true, email: true } },
       },
     });
+
+    const admins = await prisma.user.findMany({
+      where: { role: "ADMIN", isActive: true, isBanned: false },
+      select: { email: true },
+    });
+
+    const adminEmails = admins.map((a) => a.email);
+
+    try {
+      await sendResendEmails({
+        to: order.user.email,
+        subject: `Order Confirmed - ${order.invoiceNumber}`,
+        html: customerOrderPlacedEmail(order),
+      });
+
+      if (adminEmails.length > 0) {
+        await sendResendEmails({
+          to: adminEmails,
+          subject: `New Order - ${order.invoiceNumber}`,
+          html: adminNewOrderEmail(order, order.user),
+        });
+      }
+    } catch (error) {
+      console.error("Resend email failed:", error);
+    }
 
     return res.status(201).json({ order });
   } catch (error) {
