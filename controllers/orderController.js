@@ -6,9 +6,6 @@ import {
   adminNewOrderEmail,
   customerOrderPlacedEmail,
 } from "../utils/orderEmailTemplates.js";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 const prisma = new PrismaClient();
 
