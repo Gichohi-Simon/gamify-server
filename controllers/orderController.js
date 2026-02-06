@@ -1,11 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import PDFDocument from "pdfkit";
-import { sendResendEmails } from "../utils/resend";
+import { sendResendEmails } from "../utils/resend.js";
 import {
   adminNewOrderEmail,
   customerOrderPlacedEmail,
-} from "../utils/orderEmailTemplates";
+} from "../utils/orderEmailTemplates.js";
 
 const prisma = new PrismaClient();
 
