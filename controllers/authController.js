@@ -125,6 +125,79 @@ export const login = async (req, res) => {
   }
 };
 
+export const adminLogin = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "email and password required",
+      });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const user = await prisma.user.findUnique({
+      where: {
+        email: normalizedEmail,
+      },
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    if (!user.isActive || user.isBanned)
+      return res
+        .status(403)
+        .json({ message: "Account is inactive or banned, contact admin" });
+
+    const allowedRoles = ["ADMIN", "EMPLOYEE"];
+    if (!allowedRoles.includes(user.role)) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    if (user.authProvider !== "LOCAL") {
+      return res
+        .status(403)
+        .json({ message: "Admins must log in with email + password" });
+    }
+
+    if (!user.password) {
+      return res
+        .status(500)
+        .json({ message: "Admin account misconfigured (missing password)" });
+    }
+
+    const passwordsMatch = await bcrypt.compare(password, user.password);
+
+    if (!passwordsMatch) {
+      return res.status(401).json({
+        message: "Invalid email or password",
+      });
+    }
+
+    createToken(res, user.id, user.role);
+
+    const safeUser = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      authProvider: user.authProvider,
+    };
+
+    res.status(200).json({
+      user: safeUser,
+    });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({
+      message: "admin login failed",
+    });
+  }
+};
+
 export const logoutCurrentUser = async (req, res) => {
   res.clearCookie("jwt", {
     httpOnly: true,
