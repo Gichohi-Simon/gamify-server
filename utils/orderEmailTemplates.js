@@ -95,3 +95,16 @@ export const customerOrderDeliveredEmail = (order) => {
     </div>
   `;
 };
+
+export const customerOrderPaidEmail = (order) => {
+  return `
+    <div style="font-family: Arial, sans-serif; line-height:1.6;">
+      <h2>Payment Received ✅</h2>
+      <p>Hi ${order.user.username || "Customer"},</p>
+      <p>Your payment for <strong>${order.invoiceNumber}</strong> has been received.</p>
+      <p>Your invoice is attached as a PDF.</p>
+      <p>Thank you for shopping with us!</p>
+      <p>— Gamify General Supplies</p>
+    </div>
+  `;
+};

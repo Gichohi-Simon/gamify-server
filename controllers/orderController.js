@@ -1,12 +1,16 @@
 import { PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
-import PDFDocument from "pdfkit";
 import { sendResendEmails } from "../utils/resend.js";
 import {
   adminNewOrderEmail,
   customerOrderDeliveredEmail,
   customerOrderPlacedEmail,
+  customerOrderPaidEmail,
 } from "../utils/orderEmailTemplates.js";
+import {
+  generateInvoicePdfBuffer,
+  generateInvoiceToResponse,
+} from "../utils/pdfInvoice.js";
 
 const prisma = new PrismaClient();
 
@@ -29,50 +33,6 @@ function canAccessOrder(reqUser, orderUserId) {
   if (!reqUser) return false;
   if (reqUser.role === "ADMIN" || reqUser.role === "EMPLOYEE") return true;
   return reqUser.id === orderUserId;
-}
-
-function generateInvoiceToResponse(order, res) {
-  res.setHeader("Content-Type", "application/pdf");
-  res.setHeader(
-    "Content-Disposition",
-    `inline; filename="invoice-${order.invoiceNumber}.pdf"`,
-  );
-
-  const doc = new PDFDocument({ margin: 50 });
-  doc.pipe(res);
-
-  doc.fontSize(22).text("Gamify General Supplies", { align: "center" });
-  doc.moveDown();
-
-  doc.fontSize(12);
-  doc.text(`Invoice Number: ${order.invoiceNumber}`);
-  doc.text(
-    `Date: ${new Date(order.createdAt || Date.now()).toLocaleDateString()}`,
-  );
-  doc.text(`Customer ID: ${order.userId}`);
-  doc.moveDown();
-
-  doc.fontSize(14).text("Items:");
-  doc.moveDown(0.5);
-
-  order.orderItems.forEach((item) => {
-    const line = `${item.product?.name || "Product"} x${item.quantity} - KES ${item.price} each`;
-    doc.fontSize(12).text(line);
-  });
-
-  doc.moveDown();
-  doc
-    .fontSize(12)
-    .text(`Items Total: KES ${Number(order.itemsPrice).toFixed(2)}`);
-  doc.text(`Shipping: KES ${Number(order.shippingPrice).toFixed(2)}`);
-  doc.text(`Tax: KES ${Number(order.taxPrice).toFixed(2)}`);
-  doc.moveDown();
-  doc.fontSize(14).text(`Total: KES ${Number(order.totalPrice).toFixed(2)}`);
-
-  doc.moveDown(2);
-  doc.fontSize(10).text("Thank you for your business!", { align: "center" });
-
-  doc.end();
 }
 
 export const createOrder = async (req, res) => {
@@ -345,10 +305,55 @@ export const markOrderAsPaid = async (req, res) => {
   const orderId = req.params.orderId;
 
   try {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        user: { select: { email: true, username: true } },
+        orderItems: {
+          include: {
+            product: { select: { name: true } },
+          },
+        },
+      },
+    });
+
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    if (order.isPaid) {
+      return res.status(400).json({ message: "Order is already paid" });
+    }
+
     const paidOrder = await prisma.order.update({
       where: { id: orderId },
       data: { isPaid: true, paidAt: new Date() },
+      include: {
+        user: { select: { email: true, username: true } },
+        orderItems: {
+          include: {
+            product: {
+              product: { select: { name: true } },
+            },
+          },
+        },
+      },
     });
+
+    try {
+      const pdfBuffer = await generateInvoicePdfBuffer(paidOrder);
+      await sendResendEmails({
+        to: paidOrder.user.email,
+        subject: `Payment Received ✅ - ${paidOrder.invoiceNumber}`,
+        html: customerOrderPaidEmail(paidOrder),
+        attachments: [
+          {
+            filename: `invoice-${paidOrder.invoiceNumber}.pdf`,
+            content: pdfBuffer.toSting("base64"),
+          },
+        ],
+      });
+    } catch (emailErr) {
+      console.error("Invoice email failed:", emailErr);
+    }
 
     return res.status(200).json({ paidOrder });
   } catch (error) {
