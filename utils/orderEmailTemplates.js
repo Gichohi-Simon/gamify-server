@@ -73,3 +73,25 @@ export function adminNewOrderEmail(order, customer) {
     </div>
   `;
 }
+
+export const customerOrderDeliveredEmail = (order) => {
+  const name = order?.user?.username || "Customer";
+  const invoice = order?.invoiceNumber || order?.id;
+
+  const deliveredDate = order?.deliveredAt
+    ? new Date(order.deliveredAt).toLocaleString()
+    : new Date().toLocaleString();
+
+  return `
+    <div style="font-family: Arial, sans-serif; line-height:1.6;">
+      <h2>Order Delivered ✅</h2>
+      <p>Hi ${name},</p>
+      <p>Your order <strong>${invoice}</strong> has been delivered.</p>
+
+      <p><strong>Delivered on:</strong> ${deliveredDate}</p>
+
+      <hr />
+      <p>— Gamify General Supplies</p>
+    </div>
+  `;
+};

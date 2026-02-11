@@ -4,6 +4,7 @@ import PDFDocument from "pdfkit";
 import { sendResendEmails } from "../utils/resend.js";
 import {
   adminNewOrderEmail,
+  customerOrderDeliveredEmail,
   customerOrderPlacedEmail,
 } from "../utils/orderEmailTemplates.js";
 
@@ -298,10 +299,38 @@ export const markOrderAsDelivered = async (req, res) => {
   const orderId = req.params.orderId;
 
   try {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        user: { select: { email: true, username: true } },
+      },
+    });
+
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    if (order.isDelivered) {
+      return res.status(400).json({
+        message: "Order is already deliverd",
+      });
+    }
+
     const delivered = await prisma.order.update({
       where: { id: orderId },
       data: { isDelivered: true, deliveredAt: new Date() },
+      include: {
+        user: { select: { email: true, username: true } },
+      },
     });
+
+    try {
+      await sendResendEmails({
+        to: delivered.user.email,
+        subject: `Delivered ✅ - ${delivered.invoiceNumber || delivered.id}`,
+        html: customerOrderDeliveredEmail(delivered),
+      });
+    } catch (emailErr) {
+      console.error("Delivered email failed:", emailErr);
+    }
 
     return res.status(200).json({ delivered });
   } catch (error) {
