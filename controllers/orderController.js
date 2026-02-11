@@ -330,9 +330,7 @@ export const markOrderAsPaid = async (req, res) => {
         user: { select: { email: true, username: true } },
         orderItems: {
           include: {
-            product: {
-              product: { select: { name: true } },
-            },
+            product: { select: { name: true } },
           },
         },
       },
@@ -347,7 +345,7 @@ export const markOrderAsPaid = async (req, res) => {
         attachments: [
           {
             filename: `invoice-${paidOrder.invoiceNumber}.pdf`,
-            content: pdfBuffer.toSting("base64"),
+            content: pdfBuffer.toString("base64"),
           },
         ],
       });
