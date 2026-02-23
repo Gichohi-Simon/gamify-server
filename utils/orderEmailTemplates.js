@@ -53,7 +53,21 @@ export function customerOrderPlacedEmail(order) {
         <p style="margin:8px 0;font-size:16px;">Total: <b>${money(order.totalPrice)}</b></p>
       </div>
 
-      <p style="margin-top:18px;">Gamify General Supplies</p>
+      <p style="margin-top:18px;font-size:13px;color:#555;">
+        Please note: This is an automated email and is not monitored. 
+        Kindly do not reply to this message.
+      </p>
+
+      <p style="margin-top:8px;font-size:13px;color:#555;">
+        For any questions or assistance, please contact us at 
+        <a href="mailto:info@gamifygeneralsupplies.co.ke" style="color:#111;text-decoration:underline;">
+          info@gamifygeneralsupplies.co.ke
+        </a>.
+      </p>
+
+      <p style="margin-top:18px;font-weight:600;">
+        Gamify General Supplies
+      </p>
     </div>
   `;
 }
@@ -91,7 +105,21 @@ export const customerOrderDeliveredEmail = (order) => {
       <p><strong>Delivered on:</strong> ${deliveredDate}</p>
 
       <hr />
-      <p>— Gamify General Supplies</p>
+      <p style="margin-top:18px;font-size:13px;color:#555;">
+        Please note: This is an automated email and is not monitored. 
+        Kindly do not reply to this message.
+      </p>
+
+      <p style="margin-top:8px;font-size:13px;color:#555;">
+        For any questions or assistance, please contact us at 
+        <a href="mailto:info@gamifygeneralsupplies.co.ke" style="color:#111;text-decoration:underline;">
+          info@gamifygeneralsupplies.co.ke
+        </a>.
+      </p>
+
+      <p style="margin-top:18px;font-weight:600;">
+        Gamify General Supplies
+      </p>
     </div>
   `;
 };
@@ -104,7 +132,24 @@ export const customerOrderPaidEmail = (order) => {
       <p>Your payment for <strong>${order.invoiceNumber}</strong> has been received.</p>
       <p>Your invoice is attached as a PDF.</p>
       <p>Thank you for shopping with us!</p>
-      <p>— Gamify General Supplies</p>
+      
+      <hr />
+      
+      <p style="margin-top:18px;font-size:13px;color:#555;">
+        Please note: This is an automated email and is not monitored. 
+        Kindly do not reply to this message.
+      </p>
+
+      <p style="margin-top:8px;font-size:13px;color:#555;">
+        For any questions or assistance, please contact us at 
+        <a href="mailto:info@gamifygeneralsupplies.co.ke" style="color:#111;text-decoration:underline;">
+          info@gamifygeneralsupplies.co.ke
+        </a>.
+      </p>
+
+      <p style="margin-top:18px;font-weight:600;">
+        Gamify General Supplies
+      </p>
     </div>
   `;
 };
